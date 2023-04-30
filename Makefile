@@ -1,5 +1,5 @@
 TARGET = minesweeper
-SRC_FILES = main.cpp
+SRC_FILES = main.cpp Game.cpp Tile.cpp
 
 CXX = g++
 CFLAGS = -Wall -g -std=c++11
@@ -55,6 +55,8 @@ clean:
 	$(DEL) $(TARGET) $(OBJECTS)
 
 # DEPENDENCIES
-main.o: main.cpp 
+main.o: main.cpp Game.h
+Game.o: Game.cpp Game.h
+Tile.o: Tile.cpp Tile.h Game.h
 
 .PHONY: all clean

@@ -1,0 +1,2 @@
+gamewidth=20
+gameheight=20
