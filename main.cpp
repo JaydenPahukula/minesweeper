@@ -20,7 +20,7 @@ int main() {
     bkg.setSize(Vector2f(game.width()*32, game.height()*32));
     bkg.setFillColor(Color::Black);
 
-    RenderWindow window( VideoMode(game.width() * 32, game.height() * 32), "minesweeper", sf::Style::Close);
+    RenderWindow window( VideoMode(game.width()*32+64, game.height()*32+64), "minesweeper", sf::Style::Close);
     Event event;
 
     while( window.isOpen() ) {
@@ -28,7 +28,7 @@ int main() {
 
         window.draw(bkg);
 
-
+        game.draw(window);
 
 
         window.display();
