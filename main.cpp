@@ -15,10 +15,6 @@ int main() {
 
     Game game(CONFIGFILE);
 
-    RectangleShape bkg;
-    bkg.setPosition(0, 0);
-    bkg.setSize(Vector2f(game.width()*32, game.height()*32));
-    bkg.setFillColor(Color::Black);
 
     RenderWindow window( VideoMode(game.width()*32+64, game.height()*32+64), "minesweeper", sf::Style::Close);
     Event event;
@@ -26,7 +22,6 @@ int main() {
     while( window.isOpen() ) {
         window.clear();
 
-        window.draw(bkg);
 
         game.draw(window);
 

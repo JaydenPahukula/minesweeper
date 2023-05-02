@@ -1,2 +1,3 @@
-gamewidth=20
-gameheight=20
+gamewidth=10
+gameheight=10
+numbombs=20

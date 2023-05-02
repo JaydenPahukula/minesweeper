@@ -14,6 +14,9 @@ class Game {
         //destructor
         ~Game();
 
+        //reset
+        void reset();
+
         //draw
         void draw(sf::RenderWindow &window);
 
@@ -26,25 +29,19 @@ class Game {
 
     private:
 
-        std::vector<std::vector<Tile*>> _grid;
-        unsigned int _width, _height;
+        //game parameters
+        unsigned int _width, _height, _numbombs;
 
+        //game state
+        std::vector<std::vector<Tile*>> _grid;
+        bool _gameOver;
+
+        //sprites
         bool _loadSprites();
-        sf::Texture _spritesheet;
-        struct SpriteGroup {
-            sf::Sprite borderTL, borderTR, borderBL, borderBR, unopen, open0;
-            std::vector<sf::Sprite> borderTlist;
-            std::vector<sf::Sprite> borderRlist;
-            std::vector<sf::Sprite> borderBlist;
-            std::vector<sf::Sprite> borderLlist;
-        };
-        SpriteGroup _sprites;
+        sf::Texture _gamespritesheet, _tilespritesheet;
+        std::vector<sf::Sprite> _bkgSprites;
 
 };
-
-
-
-
 
 
 #endif
