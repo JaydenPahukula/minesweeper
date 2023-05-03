@@ -39,11 +39,15 @@ class Game {
         std::vector<std::vector<Tile*>> _grid;
         bool _gameOver;
 
-        //sprites
+        //textures and sprites
         bool _loadGameSprites();
         bool _loadTileSprites();
         sf::Texture _gamespritesheet, _tilespritesheet;
         std::vector<sf::Sprite> _bkgSprites;
+        sf::Sprite _happySprite,
+                   _coolSprite,
+                   _sadSprite;
+        sf::Sprite _digitSprites[6][10];
 
 };
 

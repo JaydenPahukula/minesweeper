@@ -57,7 +57,7 @@ bool Game::init(const string configfilename){
     }
 
     if (_width < MINGAMEWIDTH || _width > MAXGAMEWIDTH || _height < MINGAMEHEIGHT || _height > MAXGAMEHEIGHT ||
-        _numbombs < 1 || _numbombs > _width*_height){
+        _numbombs < 1 || _numbombs > _width*_height || _numbombs > 999){
         cerr << endl << "invalid configuration" << endl;
         return false;
     }
@@ -129,6 +129,21 @@ void Game::draw(sf::RenderWindow& window){
     for (unsigned int i = 0; i < _bkgSprites.size(); i++){
         window.draw(_bkgSprites[i]);
     }
+
+    //draw smiley face
+    if (!_gameOver){
+        window.draw(_happySprite);
+    } else {
+        window.draw(_sadSprite);
+    }
+
+    //draw digits
+    window.draw(_digitSprites[0][2]);
+    window.draw(_digitSprites[1][1]);
+    window.draw(_digitSprites[2][6]);
+    window.draw(_digitSprites[3][9]);
+    window.draw(_digitSprites[4][8]);
+    window.draw(_digitSprites[5][4]);
     
     //draw each tile
     for (unsigned int y = 0; y < _height; y++){
@@ -166,7 +181,6 @@ bool Game::_loadGameSprites(){
 
     //set background sprites
     Sprite newSprite(_gamespritesheet);
-    newSprite.setScale(TILESIZE/32.0, TILESIZE/32.0);
     //top left corner
     newSprite.setTextureRect(IntRect(0, 0, 32, 32));
     newSprite.setPosition(0, 0);
@@ -236,6 +250,46 @@ bool Game::_loadGameSprites(){
         _bkgSprites.push_back(newSprite);
     }
 
+    //load smiley faces
+    _happySprite.setTexture(_gamespritesheet);
+    _happySprite.setTextureRect(IntRect(0, 192, 64, 64));
+    _happySprite.setPosition(_width/2*TILESIZE, TILESIZE/2.0);
+
+    //load digits
+    IntRect locations[10] = {IntRect(96, 0, 32, 48), IntRect(128, 0, 32, 48), IntRect(160, 0, 32, 48), IntRect(192, 0, 32, 48), IntRect(224, 0, 32, 48),
+                             IntRect(96, 48, 32, 48), IntRect(128, 48, 32, 48), IntRect(160, 48, 32, 48), IntRect(192, 48, 32, 48), IntRect(224, 48, 32, 48)};
+    Sprite digitSprite(_gamespritesheet);
+    digitSprite.setPosition(24, 24);
+    for (int digit = 0; digit < 10; digit++){
+        digitSprite.setTextureRect(locations[digit]);
+        _digitSprites[0][digit] = digitSprite;
+    }
+    digitSprite.setPosition(56, 24);
+    for (int digit = 0; digit < 10; digit++){
+        digitSprite.setTextureRect(locations[digit]);
+        _digitSprites[1][digit] = digitSprite;
+    }
+    digitSprite.setPosition(88, 24);
+    for (int digit = 0; digit < 10; digit++){
+        digitSprite.setTextureRect(locations[digit]);
+        _digitSprites[2][digit] = digitSprite;
+    }
+    digitSprite.setPosition((_width+0.25)*TILESIZE, 24);
+    for (int digit = 0; digit < 10; digit++){
+        digitSprite.setTextureRect(locations[digit]);
+        _digitSprites[3][digit] = digitSprite;
+    }
+    digitSprite.setPosition((_width-0.75)*TILESIZE, 24);
+    for (int digit = 0; digit < 10; digit++){
+        digitSprite.setTextureRect(locations[digit]);
+        _digitSprites[4][digit] = digitSprite;
+    }
+    digitSprite.setPosition((_width-1.75)*TILESIZE, 24);
+    for (int digit = 0; digit < 10; digit++){
+        digitSprite.setTextureRect(locations[digit]);
+        _digitSprites[5][digit] = digitSprite;
+    }
+
     return true;
 }
 
@@ -250,9 +304,7 @@ bool Game::_loadTileSprites(){
 
     //load sprites
     Sprite unopenedSprite(_tilespritesheet, IntRect(0, 0, 32, 32));
-    unopenedSprite.setScale(TILESIZE/32.0, TILESIZE/32.0);
     Sprite flaggedSprite(_tilespritesheet, IntRect(32, 0, 32, 32));
-    flaggedSprite.setScale(TILESIZE/32.0, TILESIZE/32.0);
     Sprite openedSprite[] = { Sprite(_tilespritesheet, IntRect(64, 32, 32, 32)),
                               Sprite(_tilespritesheet, IntRect(96, 32, 32, 32)),
                               Sprite(_tilespritesheet, IntRect(0, 64, 32, 32)),
@@ -263,11 +315,8 @@ bool Game::_loadTileSprites(){
                               Sprite(_tilespritesheet, IntRect(32, 96, 32, 32)),
                               Sprite(_tilespritesheet, IntRect(64, 96, 32, 32)),
                               Sprite(_tilespritesheet, IntRect(0, 32, 32, 32))    }; //bomb
-    for (int i = 0; i < 10; i++){ openedSprite[i].setScale(TILESIZE/32.0, TILESIZE/32.0); }
     Sprite revealbombSprite(_tilespritesheet, IntRect(96, 0, 32, 32));
-    revealbombSprite.setScale(TILESIZE/32.0, TILESIZE/32.0);
     Sprite xbombSprite(_tilespritesheet, IntRect(32, 32, 32, 32));
-    xbombSprite.setScale(TILESIZE/32.0, TILESIZE/32.0);
 
     //initialize tiles
     int nearbyBombCount;
