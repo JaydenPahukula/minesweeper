@@ -56,7 +56,8 @@ bool Game::init(const string configfilename){
         }
     }
 
-    if (_width < MINGAMEWIDTH || _width > MAXGAMEWIDTH){
+    if (_width < MINGAMEWIDTH || _width > MAXGAMEWIDTH || _height < MINGAMEHEIGHT || _height > MAXGAMEHEIGHT ||
+        _numbombs < 1 || _numbombs > _width*_height){
         cerr << endl << "invalid configuration" << endl;
         return false;
     }
@@ -114,7 +115,9 @@ void Game::reset(){
 
     //load sprites
     Sprite unopenedSprite(_tilespritesheet, IntRect(0, 0, 32, 32));
+    unopenedSprite.setScale(TILESIZE/32.0, TILESIZE/32.0);
     Sprite flaggedSprite(_tilespritesheet, IntRect(32, 0, 32, 32));
+    flaggedSprite.setScale(TILESIZE/32.0, TILESIZE/32.0);
     Sprite openedSprite[] = { Sprite(_tilespritesheet, IntRect(64, 32, 32, 32)),
                               Sprite(_tilespritesheet, IntRect(96, 32, 32, 32)),
                               Sprite(_tilespritesheet, IntRect(0, 64, 32, 32)),
@@ -125,8 +128,11 @@ void Game::reset(){
                               Sprite(_tilespritesheet, IntRect(32, 96, 32, 32)),
                               Sprite(_tilespritesheet, IntRect(64, 96, 32, 32)),
                               Sprite(_tilespritesheet, IntRect(0, 32, 32, 32))    }; //bomb
+    for (int i = 0; i < 10; i++){ openedSprite[i].setScale(TILESIZE/32.0, TILESIZE/32.0); }
     Sprite revealbombSprite(_tilespritesheet, IntRect(96, 0, 32, 32));
+    revealbombSprite.setScale(TILESIZE/32.0, TILESIZE/32.0);
     Sprite xbombSprite(_tilespritesheet, IntRect(32, 32, 32, 32));
+    xbombSprite.setScale(TILESIZE/32.0, TILESIZE/32.0);
 
     //initialize remaining tiles
     int nearbyBombCount;
@@ -134,8 +140,8 @@ void Game::reset(){
     for (unsigned int y = 0; y < _height; y++){
         for (unsigned int x = 0; x < _width; x++){
 
-            tilex = 32*(x+1);
-            tiley = 32*(y+1);
+            tilex = TILESIZE*(x+1);
+            tiley = TILESIZE*(y+1);
 
             unopenedSprite.setPosition(tilex, tiley);
             flaggedSprite.setPosition(tilex, tiley);
@@ -216,44 +222,45 @@ bool Game::_loadSprites(){
 
     //set background sprites
     Sprite newSprite(_gamespritesheet);
+    newSprite.setScale(TILESIZE/32.0, TILESIZE/32.0);
     //top left corner
     newSprite.setTextureRect(sf::IntRect(0, 0, 32, 32));
     newSprite.setPosition(0, 0);
     _bkgSprites.push_back(newSprite);
     //top right corner
     newSprite.setTextureRect(sf::IntRect(64, 0, 32, 32));
-    newSprite.setPosition(_width*32+32, 0);
+    newSprite.setPosition((_width+1)*TILESIZE, 0);
     _bkgSprites.push_back(newSprite);
     //bottom left corner
     newSprite.setTextureRect(sf::IntRect(0, 64, 32, 32));
-    newSprite.setPosition(0, _height*32+32);
+    newSprite.setPosition(0, (_height+1)*TILESIZE);
     _bkgSprites.push_back(newSprite);
     //bottom right corner
     newSprite.setTextureRect(sf::IntRect(64, 64, 32, 32));
-    newSprite.setPosition(_width*32+32, _height*32+32);
+    newSprite.setPosition((_width+1)*TILESIZE, (_height+1)*TILESIZE);
     _bkgSprites.push_back(newSprite);
     //top row
     newSprite.setTextureRect(IntRect(32, 0, 32, 32));
-    for (unsigned int i = 0; i < _width*32; i += 32){
-        newSprite.setPosition(32+i, 0);
+    for (unsigned int i = 0; i < _width*TILESIZE; i += TILESIZE){
+        newSprite.setPosition(TILESIZE+i, 0);
         _bkgSprites.push_back(newSprite);
     }
     //bottom row
     newSprite.setTextureRect(IntRect(32, 64, 32, 32));
-    for (unsigned int i = 0; i < _width*32; i += 32){
-        newSprite.setPosition(32+i, _height*32+32);
+    for (unsigned int i = 0; i < _width*TILESIZE; i += TILESIZE){
+        newSprite.setPosition(TILESIZE+i, (_height+1)*TILESIZE);
         _bkgSprites.push_back(newSprite);
     }
     //left column
     newSprite.setTextureRect(sf::IntRect(0, 32, 32, 32));
-    for (unsigned int i = 0; i < _height*32; i += 32){
-        newSprite.setPosition(0, 32+i);
+    for (unsigned int i = 0; i < _height*TILESIZE; i += TILESIZE){
+        newSprite.setPosition(0, TILESIZE+i);
         _bkgSprites.push_back(newSprite);
     }
     //right column
     newSprite.setTextureRect(sf::IntRect(64, 32, 32, 32));
-    for (unsigned int i = 0; i < _height*32; i += 32){
-        newSprite.setPosition(32*_width+32, 32+i);
+    for (unsigned int i = 0; i < _height*TILESIZE; i += TILESIZE){
+        newSprite.setPosition((_width+1)*TILESIZE, TILESIZE+i);
         _bkgSprites.push_back(newSprite);
     }
 

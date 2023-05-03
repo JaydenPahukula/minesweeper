@@ -8,4 +8,4 @@
 #define MAXGAMEHEIGHT   64
 #define MINGAMEHEIGHT   8
 
-#define TILESIZE        32
+#define TILESIZE        48
