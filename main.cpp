@@ -1,37 +1,42 @@
 
-#include "Game.h"
-
 #include <SFML/Graphics.hpp>
 using namespace sf;
 
 #include <iostream>
 using namespace std;
 
-
-const char* CONFIGFILE = "config.txt";
+#include "definitions.h"
+#include "Game.h"
 
 
 int main() {
 
-    Game game(CONFIGFILE);
+    //create game
+    Game game;
 
+    //initialize game
+    if (!game.init(CONFIGFILE)){
+        return -1;
+    }
 
-    RenderWindow window( VideoMode(game.width()*32+64, game.height()*32+64), "minesweeper", sf::Style::Close);
+    //create window
+    RenderWindow window( VideoMode((game.width()+2)*TILESIZE, (game.height()+2)*TILESIZE), "minesweeper", sf::Style::Close);
     Event event;
 
+    //draw loop
     while( window.isOpen() ) {
         window.clear();
 
 
+        //draw game
         game.draw(window);
 
 
         window.display();
-
         while( window.pollEvent(event) ) {
-            if (event.type == Event::MouseButtonPressed){
+            if (event.type == Event::MouseButtonPressed){ //if mouse clicked
                 game.click(event.mouseButton);
-            } else if(event.type == Event::Closed) {
+            } else if(event.type == Event::Closed) { //if window closed
                 window.close();
             }
         }

@@ -1,3 +1,5 @@
+
+#include "definitions.h"
 #include "Game.h"
 
 #include <SFML/Graphics.hpp>
@@ -12,18 +14,29 @@ using namespace sf;
 using namespace std;
 
 //constructor
-Game::Game(const string filename){
+Game::Game(){
+
+    _width = 0;
+    _height = 0;
+    _numbombs = 0;
+    _gameOver = false;
 
     //seed random
     srand(time(0));
 
+}
+
+
+
+bool Game::init(const string configfilename){
+    
     //open config file
-    ifstream configfile(filename);
+    ifstream configfile(configfilename);
     if (!configfile.is_open()){
         cerr << endl << "error opening config file" << endl;
-        throw exception();
+        return false;
     }
-
+    
     //parse config file
     string id;
     int value;
@@ -43,6 +56,11 @@ Game::Game(const string filename){
         }
     }
 
+    if (_width < MINGAMEWIDTH || _width > MAXGAMEWIDTH){
+        cerr << endl << "invalid configuration" << endl;
+        return false;
+    }
+    
     //initialize grid
     _grid = vector<vector<Tile*>>(_height, vector<Tile*>(_width, nullptr));
     for (unsigned int y = 0; y < _height; y++){
@@ -50,18 +68,18 @@ Game::Game(const string filename){
             _grid[y][x] = new Tile;
         }
     }
-
+    
     //load textures sprites
     if (!_loadSprites()){
         cerr << endl << "error opening sprite sheet" << endl;
-        throw exception();
+        return false;
     }
-
-    //set all game states
+    
+    //reset all game states
     this->reset();
-
+    
+    return true;
 }
-
 
 
 //destructor
@@ -97,17 +115,16 @@ void Game::reset(){
     //load sprites
     Sprite unopenedSprite(_tilespritesheet, IntRect(0, 0, 32, 32));
     Sprite flaggedSprite(_tilespritesheet, IntRect(32, 0, 32, 32));
-    Sprite openedSprite[] = {
-        Sprite(_tilespritesheet, IntRect(64, 32, 32, 32)),
-        Sprite(_tilespritesheet, IntRect(96, 32, 32, 32)),
-        Sprite(_tilespritesheet, IntRect(0, 64, 32, 32)),
-        Sprite(_tilespritesheet, IntRect(32, 64, 32, 32)),
-        Sprite(_tilespritesheet, IntRect(64, 64, 32, 32)),
-        Sprite(_tilespritesheet, IntRect(96, 64, 32, 32)),
-        Sprite(_tilespritesheet, IntRect(0, 96, 32, 32)),
-        Sprite(_tilespritesheet, IntRect(32, 96, 32, 32)),
-        Sprite(_tilespritesheet, IntRect(64, 96, 32, 32)),
-        Sprite(_tilespritesheet, IntRect(0, 32, 32, 32))}; //bomb
+    Sprite openedSprite[] = { Sprite(_tilespritesheet, IntRect(64, 32, 32, 32)),
+                              Sprite(_tilespritesheet, IntRect(96, 32, 32, 32)),
+                              Sprite(_tilespritesheet, IntRect(0, 64, 32, 32)),
+                              Sprite(_tilespritesheet, IntRect(32, 64, 32, 32)),
+                              Sprite(_tilespritesheet, IntRect(64, 64, 32, 32)),
+                              Sprite(_tilespritesheet, IntRect(96, 64, 32, 32)),
+                              Sprite(_tilespritesheet, IntRect(0, 96, 32, 32)),
+                              Sprite(_tilespritesheet, IntRect(32, 96, 32, 32)),
+                              Sprite(_tilespritesheet, IntRect(64, 96, 32, 32)),
+                              Sprite(_tilespritesheet, IntRect(0, 32, 32, 32))    }; //bomb
     Sprite revealbombSprite(_tilespritesheet, IntRect(96, 0, 32, 32));
     Sprite xbombSprite(_tilespritesheet, IntRect(32, 32, 32, 32));
 

@@ -32,7 +32,6 @@ class Tile {
         bool _flagged;
 
         //sprites
-        bool _loadsprites();
         sf::Sprite _spriteUnopened,
                    _spriteFlagged,
                    _spriteOpened,

@@ -10,9 +10,12 @@
 class Game {
     public:
         //constructor
-        Game(const std::string filename);
+        Game();
         //destructor
         ~Game();
+
+        //init
+        bool init(const std::string configfilename);
 
         //reset
         void reset();

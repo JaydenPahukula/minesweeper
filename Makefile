@@ -55,8 +55,8 @@ clean:
 	$(DEL) $(TARGET) $(OBJECTS)
 
 # DEPENDENCIES
-main.o: main.cpp Game.h
-Game.o: Game.cpp Game.h Tile.h
-Tile.o: Tile.cpp Tile.h
+main.o: main.cpp definitions.h Game.h
+Game.o: Game.cpp Game.h definitions.h Tile.h
+Tile.o: Tile.cpp Tile.h definitions.h
 
 .PHONY: all clean
