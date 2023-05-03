@@ -40,7 +40,8 @@ class Game {
         bool _gameOver;
 
         //sprites
-        bool _loadSprites();
+        bool _loadGameSprites();
+        bool _loadTileSprites();
         sf::Texture _gamespritesheet, _tilespritesheet;
         std::vector<sf::Sprite> _bkgSprites;
 

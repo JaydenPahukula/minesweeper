@@ -12,6 +12,7 @@ Tile::Tile(){
 void Tile::reset(){
     _identity = -1;
     _revealed = false;
+    _flagged = false;
 }
 
 //init

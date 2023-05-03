@@ -20,10 +20,15 @@ int main() {
     }
 
     //create window
-    RenderWindow window( VideoMode((game.width()+2)*TILESIZE, (game.height()+2)*TILESIZE), "minesweeper", sf::Style::Close);
-    Event event;
+    RenderWindow window( VideoMode((game.width()+2)*TILESIZE, (game.height()+4)*TILESIZE), TITLE, sf::Style::Close);
+
+    //set icon
+    Image icon;
+    icon.loadFromFile(ICONFILE);
+    window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
 
     //draw loop
+    Event event;
     while( window.isOpen() ) {
         window.clear();
 

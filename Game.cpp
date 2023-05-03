@@ -71,8 +71,8 @@ bool Game::init(const string configfilename){
     }
     
     //load textures sprites
-    if (!_loadSprites()){
-        cerr << endl << "error opening sprite sheet" << endl;
+    if (!_loadGameSprites()){
+        cerr << endl << "error opening game sprite sheet" << endl;
         return false;
     }
     
@@ -113,64 +113,9 @@ void Game::reset(){
         }
     }
 
-    //load sprites
-    Sprite unopenedSprite(_tilespritesheet, IntRect(0, 0, 32, 32));
-    unopenedSprite.setScale(TILESIZE/32.0, TILESIZE/32.0);
-    Sprite flaggedSprite(_tilespritesheet, IntRect(32, 0, 32, 32));
-    flaggedSprite.setScale(TILESIZE/32.0, TILESIZE/32.0);
-    Sprite openedSprite[] = { Sprite(_tilespritesheet, IntRect(64, 32, 32, 32)),
-                              Sprite(_tilespritesheet, IntRect(96, 32, 32, 32)),
-                              Sprite(_tilespritesheet, IntRect(0, 64, 32, 32)),
-                              Sprite(_tilespritesheet, IntRect(32, 64, 32, 32)),
-                              Sprite(_tilespritesheet, IntRect(64, 64, 32, 32)),
-                              Sprite(_tilespritesheet, IntRect(96, 64, 32, 32)),
-                              Sprite(_tilespritesheet, IntRect(0, 96, 32, 32)),
-                              Sprite(_tilespritesheet, IntRect(32, 96, 32, 32)),
-                              Sprite(_tilespritesheet, IntRect(64, 96, 32, 32)),
-                              Sprite(_tilespritesheet, IntRect(0, 32, 32, 32))    }; //bomb
-    for (int i = 0; i < 10; i++){ openedSprite[i].setScale(TILESIZE/32.0, TILESIZE/32.0); }
-    Sprite revealbombSprite(_tilespritesheet, IntRect(96, 0, 32, 32));
-    revealbombSprite.setScale(TILESIZE/32.0, TILESIZE/32.0);
-    Sprite xbombSprite(_tilespritesheet, IntRect(32, 32, 32, 32));
-    xbombSprite.setScale(TILESIZE/32.0, TILESIZE/32.0);
-
-    //initialize remaining tiles
-    int nearbyBombCount;
-    int tilex, tiley;
-    for (unsigned int y = 0; y < _height; y++){
-        for (unsigned int x = 0; x < _width; x++){
-
-            tilex = TILESIZE*(x+1);
-            tiley = TILESIZE*(y+1);
-
-            unopenedSprite.setPosition(tilex, tiley);
-            flaggedSprite.setPosition(tilex, tiley);
-            revealbombSprite.setPosition(tilex, tiley);
-            xbombSprite.setPosition(tilex, tiley);
-
-            if (!_grid[y][x]->isBomb()){ //if not already a bomb
-                //count nearby bombs
-                nearbyBombCount = 0;
-                if (y > 0 && x > 0 && _grid[y-1][x-1]->isBomb())                nearbyBombCount++;
-                if (y > 0 && _grid[y-1][x]->isBomb())                           nearbyBombCount++;
-                if (y > 0 && x < _width-1 && _grid[y-1][x+1]->isBomb())         nearbyBombCount++;
-                if (x > 0 && _grid[y][x-1]->isBomb())                           nearbyBombCount++;
-                if (x < _width-1 && _grid[y][x+1]->isBomb())                    nearbyBombCount++;
-                if (y < _height-1 && x > 0 && _grid[y+1][x-1]->isBomb())        nearbyBombCount++;
-                if (y < _height-1 && _grid[y+1][x]->isBomb())                   nearbyBombCount++;
-                if (y < _height-1 && x < _width-1 && _grid[y+1][x+1]->isBomb()) nearbyBombCount++;
-                //initialize tile
-                _grid[y][x]->init(nearbyBombCount);
-                //set sprites
-                openedSprite[nearbyBombCount].setPosition(tilex, tiley);
-                _grid[y][x]->initSprites(unopenedSprite, flaggedSprite, openedSprite[nearbyBombCount], revealbombSprite, xbombSprite);
-            
-            } else { //already a bomb
-                //set sprites
-                openedSprite[9].setTextureRect(IntRect(0, 32, 32, 32));
-                _grid[y][x]->initSprites(unopenedSprite, flaggedSprite, openedSprite[9], revealbombSprite, xbombSprite);
-            }
-        }
+    //init tiles
+    if (!_loadTileSprites()){
+        cerr << endl << "error opening tile sprite sheet" << endl;
     }
 
     return;
@@ -210,34 +155,49 @@ unsigned int Game::height() const { return _height; }
 
 
 
-//load sprites
-bool Game::_loadSprites(){
+//load game sprites
+bool Game::_loadGameSprites(){
 
     //load texture from sprite sheet
-    if(!_gamespritesheet.loadFromFile("assets/gamespritesheet.png") || !_tilespritesheet.loadFromFile("assets/tilespritesheet.png")){
+    if(!_gamespritesheet.loadFromFile(GAMESPRITESHEET)){
         return false;
     }
     _gamespritesheet.setSmooth(false);
-    _tilespritesheet.setSmooth(false);
 
     //set background sprites
     Sprite newSprite(_gamespritesheet);
     newSprite.setScale(TILESIZE/32.0, TILESIZE/32.0);
     //top left corner
-    newSprite.setTextureRect(sf::IntRect(0, 0, 32, 32));
+    newSprite.setTextureRect(IntRect(0, 0, 32, 32));
     newSprite.setPosition(0, 0);
     _bkgSprites.push_back(newSprite);
     //top right corner
-    newSprite.setTextureRect(sf::IntRect(64, 0, 32, 32));
+    newSprite.setTextureRect(IntRect(64, 0, 32, 32));
     newSprite.setPosition((_width+1)*TILESIZE, 0);
     _bkgSprites.push_back(newSprite);
+    //top left side
+    newSprite.setTextureRect(IntRect(0, 32, 32, 32));
+    newSprite.setPosition(0, 32);
+    _bkgSprites.push_back(newSprite);
+    //top right side
+    newSprite.setTextureRect(IntRect(64, 32, 32, 32));
+    newSprite.setPosition((_width+1)*TILESIZE, 32);
+    _bkgSprites.push_back(newSprite);
+    //top left grid corner
+    newSprite.setTextureRect(IntRect(0, 64, 32, 32));
+    newSprite.setPosition(0, 2*TILESIZE);
+    _bkgSprites.push_back(newSprite);
+    //top right grid corner
+    newSprite.setTextureRect(IntRect(64, 64, 32, 32));
+    newSprite.setPosition((_width+1)*TILESIZE, 2*TILESIZE);
+    _bkgSprites.push_back(newSprite);
     //bottom left corner
-    newSprite.setTextureRect(sf::IntRect(0, 64, 32, 32));
-    newSprite.setPosition(0, (_height+1)*TILESIZE);
+    newSprite.setTextureRect(IntRect(0, 128, 32, 32));
+    newSprite.setPosition(0, (_height+3)*TILESIZE);
     _bkgSprites.push_back(newSprite);
     //bottom right corner
-    newSprite.setTextureRect(sf::IntRect(64, 64, 32, 32));
-    newSprite.setPosition((_width+1)*TILESIZE, (_height+1)*TILESIZE);
+    newSprite.setTextureRect(IntRect(64, 128, 32, 32));
+    newSprite.setPosition((_width+1)*TILESIZE, (_height+3)*TILESIZE);
     _bkgSprites.push_back(newSprite);
     //top row
     newSprite.setTextureRect(IntRect(32, 0, 32, 32));
@@ -245,23 +205,107 @@ bool Game::_loadSprites(){
         newSprite.setPosition(TILESIZE+i, 0);
         _bkgSprites.push_back(newSprite);
     }
-    //bottom row
+    //top middle row
+    newSprite.setTextureRect(IntRect(32, 32, 32, 32));
+    for (unsigned int i = 0; i < _width*TILESIZE; i += TILESIZE){
+        newSprite.setPosition(TILESIZE+i, TILESIZE);
+        _bkgSprites.push_back(newSprite);
+    }
+    //top grid row
     newSprite.setTextureRect(IntRect(32, 64, 32, 32));
     for (unsigned int i = 0; i < _width*TILESIZE; i += TILESIZE){
-        newSprite.setPosition(TILESIZE+i, (_height+1)*TILESIZE);
+        newSprite.setPosition(TILESIZE+i, TILESIZE*2);
+        _bkgSprites.push_back(newSprite);
+    }
+    //bottom row
+    newSprite.setTextureRect(IntRect(32, 128, 32, 32));
+    for (unsigned int i = 0; i < _width*TILESIZE; i += TILESIZE){
+        newSprite.setPosition(TILESIZE+i, (_height+3)*TILESIZE);
         _bkgSprites.push_back(newSprite);
     }
     //left column
-    newSprite.setTextureRect(sf::IntRect(0, 32, 32, 32));
+    newSprite.setTextureRect(IntRect(0, 96, 32, 32));
     for (unsigned int i = 0; i < _height*TILESIZE; i += TILESIZE){
-        newSprite.setPosition(0, TILESIZE+i);
+        newSprite.setPosition(0, (TILESIZE*3)+i);
         _bkgSprites.push_back(newSprite);
     }
     //right column
-    newSprite.setTextureRect(sf::IntRect(64, 32, 32, 32));
+    newSprite.setTextureRect(IntRect(64, 96, 32, 32));
     for (unsigned int i = 0; i < _height*TILESIZE; i += TILESIZE){
-        newSprite.setPosition((_width+1)*TILESIZE, TILESIZE+i);
+        newSprite.setPosition((_width+1)*TILESIZE, (TILESIZE*3)+i);
         _bkgSprites.push_back(newSprite);
+    }
+
+    return true;
+}
+
+//load tile sprites
+bool Game::_loadTileSprites(){
+
+    //load textere from sprite sheet
+    if (!_tilespritesheet.loadFromFile(TILESPRITESHEET)){
+        return false;
+    }
+    _tilespritesheet.setSmooth(false);
+
+    //load sprites
+    Sprite unopenedSprite(_tilespritesheet, IntRect(0, 0, 32, 32));
+    unopenedSprite.setScale(TILESIZE/32.0, TILESIZE/32.0);
+    Sprite flaggedSprite(_tilespritesheet, IntRect(32, 0, 32, 32));
+    flaggedSprite.setScale(TILESIZE/32.0, TILESIZE/32.0);
+    Sprite openedSprite[] = { Sprite(_tilespritesheet, IntRect(64, 32, 32, 32)),
+                              Sprite(_tilespritesheet, IntRect(96, 32, 32, 32)),
+                              Sprite(_tilespritesheet, IntRect(0, 64, 32, 32)),
+                              Sprite(_tilespritesheet, IntRect(32, 64, 32, 32)),
+                              Sprite(_tilespritesheet, IntRect(64, 64, 32, 32)),
+                              Sprite(_tilespritesheet, IntRect(96, 64, 32, 32)),
+                              Sprite(_tilespritesheet, IntRect(0, 96, 32, 32)),
+                              Sprite(_tilespritesheet, IntRect(32, 96, 32, 32)),
+                              Sprite(_tilespritesheet, IntRect(64, 96, 32, 32)),
+                              Sprite(_tilespritesheet, IntRect(0, 32, 32, 32))    }; //bomb
+    for (int i = 0; i < 10; i++){ openedSprite[i].setScale(TILESIZE/32.0, TILESIZE/32.0); }
+    Sprite revealbombSprite(_tilespritesheet, IntRect(96, 0, 32, 32));
+    revealbombSprite.setScale(TILESIZE/32.0, TILESIZE/32.0);
+    Sprite xbombSprite(_tilespritesheet, IntRect(32, 32, 32, 32));
+    xbombSprite.setScale(TILESIZE/32.0, TILESIZE/32.0);
+
+    //initialize tiles
+    int nearbyBombCount;
+    int tilex, tiley;
+    for (unsigned int y = 0; y < _height; y++){
+        for (unsigned int x = 0; x < _width; x++){
+
+            tilex = TILESIZE*(x+1);
+            tiley = TILESIZE*(y+3);
+
+            unopenedSprite.setPosition(tilex, tiley);
+            flaggedSprite.setPosition(tilex, tiley);
+            revealbombSprite.setPosition(tilex, tiley);
+            xbombSprite.setPosition(tilex, tiley);
+
+            if (!_grid[y][x]->isBomb()){ //if not already a bomb
+                //count nearby bombs
+                nearbyBombCount = 0;
+                if (y > 0 && x > 0 && _grid[y-1][x-1]->isBomb())                nearbyBombCount++;
+                if (y > 0 && _grid[y-1][x]->isBomb())                           nearbyBombCount++;
+                if (y > 0 && x < _width-1 && _grid[y-1][x+1]->isBomb())         nearbyBombCount++;
+                if (x > 0 && _grid[y][x-1]->isBomb())                           nearbyBombCount++;
+                if (x < _width-1 && _grid[y][x+1]->isBomb())                    nearbyBombCount++;
+                if (y < _height-1 && x > 0 && _grid[y+1][x-1]->isBomb())        nearbyBombCount++;
+                if (y < _height-1 && _grid[y+1][x]->isBomb())                   nearbyBombCount++;
+                if (y < _height-1 && x < _width-1 && _grid[y+1][x+1]->isBomb()) nearbyBombCount++;
+                //initialize tile
+                _grid[y][x]->init(nearbyBombCount);
+                //set sprites
+                openedSprite[nearbyBombCount].setPosition(tilex, tiley);
+                _grid[y][x]->initSprites(unopenedSprite, flaggedSprite, openedSprite[nearbyBombCount], revealbombSprite, xbombSprite);
+            
+            } else { //already a bomb
+                //set sprites
+                openedSprite[9].setTextureRect(IntRect(0, 32, 32, 32));
+                _grid[y][x]->initSprites(unopenedSprite, flaggedSprite, openedSprite[9], revealbombSprite, xbombSprite);
+            }
+        }
     }
 
     return true;
