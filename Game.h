@@ -3,6 +3,7 @@
 
 #include "Tile.h"
 
+#include <ctime>
 #include <string>
 #include <vector>
 #include <SFML/Graphics.hpp>
@@ -20,6 +21,9 @@ class Game {
         //reset
         void reset();
 
+        //update
+        void update();
+
         //draw
         void draw(sf::RenderWindow &window);
 
@@ -33,7 +37,7 @@ class Game {
     private:
 
         //game parameters
-        unsigned int _width, _height, _numbombs;
+        unsigned int _width, _height, _numBombs, _numBombsRemaining;
 
         //game state
         std::vector<std::vector<Tile*>> _grid;
@@ -48,6 +52,11 @@ class Game {
                    _coolSprite,
                    _sadSprite;
         sf::Sprite _digitSprites[6][10];
+
+        //timer
+        bool _timerRunning;
+        time_t _startTime;
+        time_t _currTime;
 
 };
 

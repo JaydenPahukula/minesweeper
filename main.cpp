@@ -32,6 +32,8 @@ int main() {
     while( window.isOpen() ) {
         window.clear();
 
+        //update game
+        game.update();
 
         //draw game
         game.draw(window);

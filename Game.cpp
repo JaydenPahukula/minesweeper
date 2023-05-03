@@ -18,8 +18,12 @@ Game::Game(){
 
     _width = 0;
     _height = 0;
-    _numbombs = 0;
+    _numBombs = 0;
+    _numBombsRemaining = 0;
     _gameOver = false;
+    _timerRunning = true;
+    _startTime = 0;
+    _currTime = 0;
 
     //seed random
     srand(time(0));
@@ -52,12 +56,12 @@ bool Game::init(const string configfilename){
         } else if (id == "gameheight"){
             _height = value;
         } else if (id == "numbombs"){
-            _numbombs = value;
+            _numBombs = value;
         }
     }
 
     if (_width < MINGAMEWIDTH || _width > MAXGAMEWIDTH || _height < MINGAMEHEIGHT || _height > MAXGAMEHEIGHT ||
-        _numbombs < 1 || _numbombs > _width*_height || _numbombs > 999){
+        _numBombs < 1 || _numBombs > _width*_height || _numBombs > 999){
         cerr << endl << "invalid configuration" << endl;
         return false;
     }
@@ -99,6 +103,7 @@ Game::~Game(){
 void Game::reset(){
 
     _gameOver = false;
+    _numBombsRemaining = _numBombs;
 
     //reset each tile
     for (unsigned int y = 0; y < _height; y++){
@@ -107,7 +112,7 @@ void Game::reset(){
         }
     }
     //make bombs
-    for (unsigned int i = 0; i < _numbombs; i++){
+    for (unsigned int i = 0; i < _numBombs; i++){
         if (!_grid[rand()%_height][rand()%_width]->init(0)){
             i--;
         }
@@ -118,11 +123,24 @@ void Game::reset(){
         cerr << endl << "error opening tile sprite sheet" << endl;
     }
 
+    //start timer
+    _startTime = time(0);
+
     return;
 }
 
 
+//update
+void Game::update(){
+    if (_timerRunning){
+        _currTime = time(0) - _startTime;
+    }
 
+    return;
+}
+
+
+//draw
 void Game::draw(sf::RenderWindow& window){
 
     //draw background
@@ -137,13 +155,15 @@ void Game::draw(sf::RenderWindow& window){
         window.draw(_sadSprite);
     }
 
-    //draw digits
-    window.draw(_digitSprites[0][2]);
-    window.draw(_digitSprites[1][1]);
-    window.draw(_digitSprites[2][6]);
-    window.draw(_digitSprites[3][9]);
-    window.draw(_digitSprites[4][8]);
-    window.draw(_digitSprites[5][4]);
+    //draw bomb count
+    window.draw(_digitSprites[0][(_numBombsRemaining/100)%10]);
+    window.draw(_digitSprites[1][(_numBombsRemaining/10)%10]);
+    window.draw(_digitSprites[2][_numBombsRemaining%10]);
+
+    //draw timer
+    window.draw(_digitSprites[3][(_currTime/100)%10]);
+    window.draw(_digitSprites[4][(_currTime/10)%10]);
+    window.draw(_digitSprites[5][_currTime%10]);
     
     //draw each tile
     for (unsigned int y = 0; y < _height; y++){
@@ -274,7 +294,7 @@ bool Game::_loadGameSprites(){
         digitSprite.setTextureRect(locations[digit]);
         _digitSprites[2][digit] = digitSprite;
     }
-    digitSprite.setPosition((_width+0.25)*TILESIZE, 24);
+    digitSprite.setPosition((_width-1.75)*TILESIZE, 24);
     for (int digit = 0; digit < 10; digit++){
         digitSprite.setTextureRect(locations[digit]);
         _digitSprites[3][digit] = digitSprite;
@@ -284,7 +304,7 @@ bool Game::_loadGameSprites(){
         digitSprite.setTextureRect(locations[digit]);
         _digitSprites[4][digit] = digitSprite;
     }
-    digitSprite.setPosition((_width-1.75)*TILESIZE, 24);
+    digitSprite.setPosition((_width+0.25)*TILESIZE, 24);
     for (int digit = 0; digit < 10; digit++){
         digitSprite.setTextureRect(locations[digit]);
         _digitSprites[5][digit] = digitSprite;
