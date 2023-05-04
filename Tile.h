@@ -20,9 +20,13 @@ class Tile {
         void draw(sf::RenderWindow &window) const;
         void drawGameOver(sf::RenderWindow &window) const;
 
+        bool reveal();
+        void flag();
+
         //getters
         bool isRevealed() const;
         bool isBomb() const;
+        bool isZero() const;
 
     private:
 
@@ -35,8 +39,8 @@ class Tile {
         sf::Sprite _spriteUnopened,
                    _spriteFlagged,
                    _spriteOpened,
-                   _spriteRevealbomb,
-                   _spriteXbomb;
+                   _spriteRevealBomb,
+                   _spriteXBomb;
 
 };
 

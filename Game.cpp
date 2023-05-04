@@ -21,7 +21,7 @@ Game::Game(){
     _numBombs = 0;
     _numBombsRemaining = 0;
     _gameOver = false;
-    _timerRunning = true;
+    _timerRunning = false;
     _startTime = 0;
     _currTime = 0;
 
@@ -89,7 +89,6 @@ bool Game::init(const string configfilename){
 
 //destructor
 Game::~Game(){
-    //
     for (unsigned int y = 0; y < _height; y++){
         for (unsigned int x = 0; x < _width; x++){
             delete _grid[y][x];
@@ -103,6 +102,8 @@ Game::~Game(){
 void Game::reset(){
 
     _gameOver = false;
+    _timerRunning = false;
+    _currTime = 0;
     _numBombsRemaining = _numBombs;
 
     //reset each tile
@@ -113,7 +114,7 @@ void Game::reset(){
     }
     //make bombs
     for (unsigned int i = 0; i < _numBombs; i++){
-        if (!_grid[rand()%_height][rand()%_width]->init(0)){
+        if (!_grid[rand()%_height][rand()%_width]->init(9)){
             i--;
         }
     }
@@ -123,15 +124,14 @@ void Game::reset(){
         cerr << endl << "error opening tile sprite sheet" << endl;
     }
 
-    //start timer
-    _startTime = time(0);
-
     return;
 }
 
 
 //update
 void Game::update(){
+
+    //update timer
     if (_timerRunning){
         _currTime = time(0) - _startTime;
     }
@@ -152,7 +152,11 @@ void Game::draw(sf::RenderWindow& window){
     if (!_gameOver){
         window.draw(_happySprite);
     } else {
-        window.draw(_sadSprite);
+        if (_numBombsRemaining == 0){
+            window.draw(_coolSprite);
+        } else {
+            window.draw(_sadSprite);
+        }
     }
 
     //draw bomb count
@@ -168,7 +172,11 @@ void Game::draw(sf::RenderWindow& window){
     //draw each tile
     for (unsigned int y = 0; y < _height; y++){
         for (unsigned int x = 0; x < _width; x++){
-            _grid[y][x]->draw(window);
+            if (_gameOver){
+                _grid[y][x]->drawGameOver(window);
+            } else {
+                _grid[y][x]->draw(window);
+            }
         }
     }
     return;
@@ -178,7 +186,29 @@ void Game::draw(sf::RenderWindow& window){
 
 //click
 void Game::click(const sf::Event::MouseButtonEvent mouse){
-    cout << "clicked" << endl;
+
+    if (mouse.x > _width/2*TILESIZE && mouse.x < (_width+4)/2*TILESIZE && mouse.y > 16 && mouse.y < 80 && mouse.button == Mouse::Left){
+        this->reset();
+    }
+    if (!_gameOver && mouse.x > TILESIZE && mouse.x < (_width+1)*TILESIZE && mouse.y > TILESIZE*3 && mouse.y < (_height+3)*TILESIZE){ 
+        if (!_timerRunning){
+            _startTime = time(0);
+            _timerRunning = true;
+        }
+        int tilex = mouse.x / TILESIZE - 1;
+        int tiley = mouse.y / TILESIZE - 3;
+        if (mouse.button == Mouse::Left){
+            if(_grid[tiley][tilex]->reveal()){
+                _gameOver = true;
+                _timerRunning = false;
+            } else {
+                this->_checkZeroTile(tilex, tiley);
+            }
+        } else if (mouse.button == Mouse::Right){
+            _grid[tiley][tilex]->flag();
+        }
+    }
+
     return;
 }
 
@@ -187,6 +217,79 @@ void Game::click(const sf::Event::MouseButtonEvent mouse){
 //getters
 unsigned int Game::width() const { return _width; }
 unsigned int Game::height() const { return _height; }
+
+
+void Game::_checkZeroTile(unsigned int x, unsigned int y) const {
+    if (x < 0 || x >= _width || y < 0 || y >= _height) return; 
+    
+    if (_grid[y][x]->isZero()){
+        if (y > 0 && x > 0){
+            if(!_grid[y-1][x-1]->isRevealed()){
+                _grid[y-1][x-1]->reveal();
+                _checkZeroTile(x-1, y-1);
+            }
+        }
+        if (y > 0){
+            if (!_grid[y-1][x]->isRevealed()){
+                _grid[y-1][x]->reveal();
+                _checkZeroTile(x, y-1);
+            }
+        }
+        if (y > 0 && x < _width-1){
+            if (!_grid[y-1][x+1]->isRevealed()){
+                _grid[y-1][x+1]->reveal();
+                _checkZeroTile(x+1, y-1);
+            }
+        }
+        if (x > 0){
+            if (!_grid[y][x-1]->isRevealed()){
+                _grid[y][x-1]->reveal();
+                _checkZeroTile(x-1, y);
+            }
+        }
+        if (x < _width-1){
+            if (!_grid[y][x+1]->isRevealed()){
+                _grid[y][x+1]->reveal();
+                _checkZeroTile(x+1, y);
+            }
+        }
+        if (y < _height-1 && x > 0){
+            if (!_grid[y+1][x-1]->isRevealed()){
+                _grid[y+1][x-1]->reveal();
+                _checkZeroTile(x-1, y+1);
+            }
+        }
+        if (y < _height-1){
+            if (!_grid[y+1][x]->isRevealed()){
+                _grid[y+1][x]->reveal();
+                _checkZeroTile(x, y+1);
+            }
+        }
+        if (y < _height-1 && x < _width-1){
+            if (!_grid[y+1][x+1]->isRevealed()){
+                _grid[y+1][x+1]->reveal();
+                _checkZeroTile(x+1, y+1);
+            }
+        }
+    }
+    return;
+}
+
+
+std::vector<Tile*> Game::_getNearbyTiles(unsigned int x, unsigned int y) const {
+
+    vector<Tile*> nearbyTiles;
+    if (y > 0 && x > 0)                nearbyTiles.push_back(_grid[y-1][x-1]);
+    if (y > 0)                         nearbyTiles.push_back(_grid[y-1][x]);
+    if (y > 0 && x < _width-1)         nearbyTiles.push_back(_grid[y-1][x+1]);
+    if (x > 0)                         nearbyTiles.push_back(_grid[y][x-1]);
+    if (x < _width-1)                  nearbyTiles.push_back(_grid[y][x+1]);
+    if (y < _height-1 && x > 0)        nearbyTiles.push_back(_grid[y+1][x-1]);
+    if (y < _height-1)                 nearbyTiles.push_back(_grid[y+1][x]);
+    if (y < _height-1 && x < _width-1) nearbyTiles.push_back(_grid[y+1][x+1]);
+
+    return nearbyTiles;
+}
 
 
 
@@ -273,7 +376,13 @@ bool Game::_loadGameSprites(){
     //load smiley faces
     _happySprite.setTexture(_gamespritesheet);
     _happySprite.setTextureRect(IntRect(0, 192, 64, 64));
-    _happySprite.setPosition(_width/2*TILESIZE, TILESIZE/2.0);
+    _happySprite.setPosition(_width/2*TILESIZE, 16);
+    _coolSprite.setTexture(_gamespritesheet);
+    _coolSprite.setTextureRect(IntRect(64, 192, 64, 64));
+    _coolSprite.setPosition(_width/2*TILESIZE, 16);
+    _sadSprite.setTexture(_gamespritesheet);
+    _sadSprite.setTextureRect(IntRect(128, 192, 64, 64));
+    _sadSprite.setPosition(_width/2*TILESIZE, 16);
 
     //load digits
     IntRect locations[10] = {IntRect(96, 0, 32, 48), IntRect(128, 0, 32, 48), IntRect(160, 0, 32, 48), IntRect(192, 0, 32, 48), IntRect(224, 0, 32, 48),
@@ -355,14 +464,10 @@ bool Game::_loadTileSprites(){
             if (!_grid[y][x]->isBomb()){ //if not already a bomb
                 //count nearby bombs
                 nearbyBombCount = 0;
-                if (y > 0 && x > 0 && _grid[y-1][x-1]->isBomb())                nearbyBombCount++;
-                if (y > 0 && _grid[y-1][x]->isBomb())                           nearbyBombCount++;
-                if (y > 0 && x < _width-1 && _grid[y-1][x+1]->isBomb())         nearbyBombCount++;
-                if (x > 0 && _grid[y][x-1]->isBomb())                           nearbyBombCount++;
-                if (x < _width-1 && _grid[y][x+1]->isBomb())                    nearbyBombCount++;
-                if (y < _height-1 && x > 0 && _grid[y+1][x-1]->isBomb())        nearbyBombCount++;
-                if (y < _height-1 && _grid[y+1][x]->isBomb())                   nearbyBombCount++;
-                if (y < _height-1 && x < _width-1 && _grid[y+1][x+1]->isBomb()) nearbyBombCount++;
+                vector<Tile*> nearbyTiles = _getNearbyTiles(x, y);
+                for (unsigned int i = 0; i < nearbyTiles.size(); i++){
+                    if (nearbyTiles[i]->isBomb()) nearbyBombCount++;
+                }
                 //initialize tile
                 _grid[y][x]->init(nearbyBombCount);
                 //set sprites
@@ -372,6 +477,7 @@ bool Game::_loadTileSprites(){
             } else { //already a bomb
                 //set sprites
                 openedSprite[9].setTextureRect(IntRect(0, 32, 32, 32));
+                openedSprite[9].setPosition(tilex, tiley);
                 _grid[y][x]->initSprites(unopenedSprite, flaggedSprite, openedSprite[9], revealbombSprite, xbombSprite);
             }
         }

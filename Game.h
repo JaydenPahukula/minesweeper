@@ -43,6 +43,10 @@ class Game {
         std::vector<std::vector<Tile*>> _grid;
         bool _gameOver;
 
+        //
+        void _checkZeroTile(unsigned int x, unsigned int y) const;
+        std::vector<Tile*> _getNearbyTiles(unsigned int x, unsigned int y) const;
+
         //textures and sprites
         bool _loadGameSprites();
         bool _loadTileSprites();
