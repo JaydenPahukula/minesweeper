@@ -20,9 +20,9 @@ int main() {
     }
 
     //create window
-    RenderWindow window( VideoMode((game.width()+2)*TILESIZE, (game.height()+4)*TILESIZE), TITLE, sf::Style::Close);
+    RenderWindow window( VideoMode((game.width()+2)*TILESIZE, (game.height()+4)*TILESIZE), "Minesweeper", sf::Style::Close);
 
-    //set icon
+    //set window icon
     Image icon;
     icon.loadFromFile(ICONFILE);
     window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
@@ -31,9 +31,6 @@ int main() {
     Event event;
     while( window.isOpen() ) {
         window.clear();
-
-        //update game
-        game.update();
 
         //draw game
         game.draw(window);

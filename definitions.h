@@ -1,6 +1,4 @@
 
-#define TITLE           "Minesweeper"
-
 #define CONFIGFILE      "config.txt"
 #define GAMESPRITESHEET "assets/gamespritesheet.png"
 #define TILESPRITESHEET "assets/tilespritesheet.png"

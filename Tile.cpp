@@ -44,7 +44,7 @@ void Tile::draw(sf::RenderWindow &window) const {
     }
 }
 
-void Tile::drawGameOver(sf::RenderWindow &window) const {
+void Tile::drawLose(sf::RenderWindow &window) const {
     if (_identity == 9){
         if (_revealed){
             window.draw(_spriteOpened);
@@ -58,17 +58,32 @@ void Tile::drawGameOver(sf::RenderWindow &window) const {
     }
 }
 
+void Tile::drawWin(sf::RenderWindow &window) const {
+    if (_identity != 9){
+        window.draw(_spriteOpened);
+    } else {
+        window.draw(_spriteFlagged);
+    }
+}
+
 bool Tile::reveal(){
     _revealed = true;
-    return _identity == 9;
+    return this->isBomb();
+}
+
+bool Tile::revealZero(){
+    bool previouslyRevealed = _revealed;
+    _revealed = true;
+    return (!previouslyRevealed && this->isZero());
 }
 
 void Tile::flag(){
-    _flagged = true;
+    _flagged = !_flagged;
     return;
 }
 
 //getters
 bool Tile::isRevealed() const { return _revealed; }
-bool Tile::isBomb() const { return _identity == 9; }
-bool Tile::isZero() const { return _identity == 0; }
+bool Tile::isBomb() const     { return _identity == 9; }
+bool Tile::isZero() const     { return _identity == 0; }
+bool Tile::isFlagged() const  { return _flagged; }

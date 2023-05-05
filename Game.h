@@ -21,9 +21,6 @@ class Game {
         //reset
         void reset();
 
-        //update
-        void update();
-
         //draw
         void draw(sf::RenderWindow &window);
 
@@ -37,11 +34,11 @@ class Game {
     private:
 
         //game parameters
-        unsigned int _width, _height, _numBombs, _numBombsRemaining;
+        unsigned int _width, _height, _numBombs;
 
         //game state
         std::vector<std::vector<Tile*>> _grid;
-        bool _gameOver;
+        unsigned int _gameOver, _numBombsRemaining;
 
         //
         void _checkZeroTile(unsigned int x, unsigned int y) const;

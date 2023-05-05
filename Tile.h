@@ -18,15 +18,18 @@ class Tile {
 
         //draw
         void draw(sf::RenderWindow &window) const;
-        void drawGameOver(sf::RenderWindow &window) const;
+        void drawLose(sf::RenderWindow &window) const;
+        void drawWin(sf::RenderWindow &window) const;
 
         bool reveal();
+        bool revealZero();
         void flag();
 
         //getters
         bool isRevealed() const;
         bool isBomb() const;
         bool isZero() const;
+        bool isFlagged() const;
 
     private:
 

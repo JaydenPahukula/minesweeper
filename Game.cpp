@@ -20,12 +20,13 @@ Game::Game(){
     _height = 0;
     _numBombs = 0;
     _numBombsRemaining = 0;
-    _gameOver = false;
+    _gameOver = 0;
     _timerRunning = false;
     _startTime = 0;
     _currTime = 0;
 
     //seed random
+    srand(time(0));
     srand(time(0));
 
 }
@@ -101,7 +102,7 @@ Game::~Game(){
 //reset
 void Game::reset(){
 
-    _gameOver = false;
+    _gameOver = 0;
     _timerRunning = false;
     _currTime = 0;
     _numBombsRemaining = _numBombs;
@@ -128,20 +129,29 @@ void Game::reset(){
 }
 
 
-//update
-void Game::update(){
-
-    //update timer
-    if (_timerRunning){
-        _currTime = time(0) - _startTime;
-    }
-
-    return;
-}
-
 
 //draw
 void Game::draw(sf::RenderWindow& window){
+
+    //update timer
+    if (_timerRunning) _currTime = time(0) - _startTime;
+
+    //count num bombs remaining
+    if (!_gameOver){
+        _numBombsRemaining = _numBombs;
+        unsigned int numUnrevealed = 0;
+        for (unsigned int y = 0; y < _height; y++){
+            for (unsigned int x = 0; x < _width; x++){
+                _numBombsRemaining -= _grid[y][x]->isFlagged();
+                numUnrevealed += !_grid[y][x]->isRevealed();
+            }
+        }
+        if (_numBombsRemaining == 0 || numUnrevealed == _numBombsRemaining){
+            _numBombsRemaining = 0;
+            _gameOver = 2;
+            _timerRunning = false;
+        }
+    }
 
     //draw background
     for (unsigned int i = 0; i < _bkgSprites.size(); i++){
@@ -149,14 +159,15 @@ void Game::draw(sf::RenderWindow& window){
     }
 
     //draw smiley face
-    if (!_gameOver){
-        window.draw(_happySprite);
-    } else {
-        if (_numBombsRemaining == 0){
-            window.draw(_coolSprite);
-        } else {
-            window.draw(_sadSprite);
-        }
+    switch (_gameOver){
+        case 0:
+            window.draw(_happySprite); break;
+        case 1:
+            window.draw(_sadSprite); break;
+        case 2:
+            window.draw(_coolSprite); break;
+        default:
+            break;
     }
 
     //draw bomb count
@@ -172,10 +183,15 @@ void Game::draw(sf::RenderWindow& window){
     //draw each tile
     for (unsigned int y = 0; y < _height; y++){
         for (unsigned int x = 0; x < _width; x++){
-            if (_gameOver){
-                _grid[y][x]->drawGameOver(window);
-            } else {
-                _grid[y][x]->draw(window);
+            switch (_gameOver){
+                case 0:
+                    _grid[y][x]->draw(window); break;
+                case 1:
+                    _grid[y][x]->drawLose(window); break;
+                case 2:
+                    _grid[y][x]->drawWin(window); break;
+                default:
+                    break;
             }
         }
     }
@@ -187,19 +203,19 @@ void Game::draw(sf::RenderWindow& window){
 //click
 void Game::click(const sf::Event::MouseButtonEvent mouse){
 
-    if (mouse.x > _width/2*TILESIZE && mouse.x < (_width+4)/2*TILESIZE && mouse.y > 16 && mouse.y < 80 && mouse.button == Mouse::Left){
+    if (mouse.x > (int)_width/2*TILESIZE && mouse.x < (int)(_width+4)/2*TILESIZE && mouse.y > 16 && mouse.y < 80 && mouse.button == Mouse::Left){
         this->reset();
     }
-    if (!_gameOver && mouse.x > TILESIZE && mouse.x < (_width+1)*TILESIZE && mouse.y > TILESIZE*3 && mouse.y < (_height+3)*TILESIZE){ 
+    if (!_gameOver && mouse.x > TILESIZE && mouse.x < (int)(_width+1)*TILESIZE && mouse.y > (int)TILESIZE*3 && mouse.y < (int)(_height+3)*TILESIZE){ 
         if (!_timerRunning){
             _startTime = time(0);
             _timerRunning = true;
         }
         int tilex = mouse.x / TILESIZE - 1;
         int tiley = mouse.y / TILESIZE - 3;
-        if (mouse.button == Mouse::Left){
+        if (mouse.button == Mouse::Left && !_grid[tiley][tilex]->isFlagged()){
             if(_grid[tiley][tilex]->reveal()){
-                _gameOver = true;
+                _gameOver = 1;
                 _timerRunning = false;
             } else {
                 this->_checkZeroTile(tilex, tiley);
@@ -223,54 +239,14 @@ void Game::_checkZeroTile(unsigned int x, unsigned int y) const {
     if (x < 0 || x >= _width || y < 0 || y >= _height) return; 
     
     if (_grid[y][x]->isZero()){
-        if (y > 0 && x > 0){
-            if(!_grid[y-1][x-1]->isRevealed()){
-                _grid[y-1][x-1]->reveal();
-                _checkZeroTile(x-1, y-1);
-            }
-        }
-        if (y > 0){
-            if (!_grid[y-1][x]->isRevealed()){
-                _grid[y-1][x]->reveal();
-                _checkZeroTile(x, y-1);
-            }
-        }
-        if (y > 0 && x < _width-1){
-            if (!_grid[y-1][x+1]->isRevealed()){
-                _grid[y-1][x+1]->reveal();
-                _checkZeroTile(x+1, y-1);
-            }
-        }
-        if (x > 0){
-            if (!_grid[y][x-1]->isRevealed()){
-                _grid[y][x-1]->reveal();
-                _checkZeroTile(x-1, y);
-            }
-        }
-        if (x < _width-1){
-            if (!_grid[y][x+1]->isRevealed()){
-                _grid[y][x+1]->reveal();
-                _checkZeroTile(x+1, y);
-            }
-        }
-        if (y < _height-1 && x > 0){
-            if (!_grid[y+1][x-1]->isRevealed()){
-                _grid[y+1][x-1]->reveal();
-                _checkZeroTile(x-1, y+1);
-            }
-        }
-        if (y < _height-1){
-            if (!_grid[y+1][x]->isRevealed()){
-                _grid[y+1][x]->reveal();
-                _checkZeroTile(x, y+1);
-            }
-        }
-        if (y < _height-1 && x < _width-1){
-            if (!_grid[y+1][x+1]->isRevealed()){
-                _grid[y+1][x+1]->reveal();
-                _checkZeroTile(x+1, y+1);
-            }
-        }
+        if (y > 0 && x > 0 && _grid[y-1][x-1]->revealZero())                _checkZeroTile(x-1, y-1);
+        if (y > 0 && _grid[y-1][x]->revealZero())                           _checkZeroTile(x, y-1);
+        if (y > 0 && x < _width-1 && _grid[y-1][x+1]->revealZero())         _checkZeroTile(x+1, y-1);
+        if (x > 0 && _grid[y][x-1]->revealZero())                           _checkZeroTile(x-1, y);
+        if (x < _width-1 && _grid[y][x+1]->revealZero())                    _checkZeroTile(x+1, y);
+        if (y < _height-1 && x > 0 && _grid[y+1][x-1]->revealZero())        _checkZeroTile(x-1, y+1);
+        if (y < _height-1 && _grid[y+1][x]->revealZero())                   _checkZeroTile(x, y+1);
+        if (y < _height-1 && x < _width-1 && _grid[y+1][x+1]->revealZero()) _checkZeroTile(x+1, y+1);
     }
     return;
 }
