@@ -3,28 +3,32 @@
 
 #include "Tile.h"
 
-#include <ctime>
+#include <SFML/Graphics.hpp>
+
 #include <string>
 #include <vector>
-#include <SFML/Graphics.hpp>
+
+#include <ctime>
+
 
 class Game {
     public:
+    
         //constructor
         Game();
         //destructor
         ~Game();
 
-        //init
+        //initialize the game from config file
         bool init(const std::string configfilename);
 
-        //reset
+        //reset the game
         void reset();
 
-        //draw
+        //draw the game
         void draw(sf::RenderWindow &window);
 
-        //click
+        //click event
         void click(const sf::Event::MouseButtonEvent mouse);
 
         //getters
@@ -38,11 +42,11 @@ class Game {
 
         //game state
         std::vector<std::vector<Tile*>> _grid;
-        unsigned int _gameOver, _numBombsRemaining;
-
-        //
-        void _checkZeroTile(unsigned int x, unsigned int y) const;
-        std::vector<Tile*> _getNearbyTiles(unsigned int x, unsigned int y) const;
+        unsigned int _gameOver;
+        // _gameOver key:
+        // 0 - game in progress
+        // 1 - game over, player lost
+        // 2 - game over, player won
 
         //textures and sprites
         bool _loadGameSprites();
@@ -56,8 +60,10 @@ class Game {
 
         //timer
         bool _timerRunning;
-        time_t _startTime;
-        time_t _currTime;
+        time_t _startTime, _currTime;
+
+        //game functions
+        void _checkZeroTile(unsigned int x, unsigned int y) const;
 
 };
 

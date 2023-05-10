@@ -2,9 +2,6 @@
 #include <SFML/Graphics.hpp>
 using namespace sf;
 
-#include <iostream>
-using namespace std;
-
 #include "definitions.h"
 #include "Game.h"
 
@@ -34,7 +31,6 @@ int main() {
 
         //draw game
         game.draw(window);
-
 
         window.display();
         while( window.pollEvent(event) ) {

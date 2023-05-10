@@ -41,7 +41,7 @@ else
 	endif
 endif
 
-LIBS = -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -lsfml-network
+LIBS = -lsfml-graphics -lsfml-window -lsfml-system
 
 all: $(TARGET)
 
@@ -56,7 +56,7 @@ clean:
 
 # DEPENDENCIES
 main.o: main.cpp definitions.h Game.h
-Game.o: Game.cpp Game.h definitions.h Tile.h
+Game.o: Game.cpp GameSprites.cpp Game.h definitions.h Tile.h
 Tile.o: Tile.cpp Tile.h definitions.h
 
 .PHONY: all clean

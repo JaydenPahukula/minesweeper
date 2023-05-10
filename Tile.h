@@ -9,18 +9,20 @@ class Tile {
         //constructor
         Tile();
 
-        //reset
+        //reset the tile
         void reset();
 
-        //init
+        //initialize the tile
         bool init(const int value);
-        void initSprites(sf::Sprite unopened, sf::Sprite flag, sf::Sprite opened, sf::Sprite revealbomb, sf::Sprite xbomb);
+        //initialze the tile's sprites
+        void setSprites(sf::Sprite unopened, sf::Sprite flag, sf::Sprite opened, sf::Sprite revealbomb, sf::Sprite xbomb);
 
-        //draw
+        //draw the tile
         void draw(sf::RenderWindow &window) const;
         void drawLose(sf::RenderWindow &window) const;
         void drawWin(sf::RenderWindow &window) const;
 
+        //actions
         bool reveal();
         bool revealZero();
         void flag();
@@ -34,9 +36,13 @@ class Tile {
     private:
 
         //tile state
-        int _identity;
         bool _revealed;
         bool _flagged;
+        int _identity;
+        //    identity key:
+        //   -1 - uninitialized
+        //  0-8 - the are x bombs nearby
+        //    9 - bomb
 
         //sprites
         sf::Sprite _spriteUnopened,
@@ -46,7 +52,6 @@ class Tile {
                    _spriteXBomb;
 
 };
-
 
 
 #endif

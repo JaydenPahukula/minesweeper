@@ -2,21 +2,24 @@
 #include "Tile.h"
 
 #include <SFML/Graphics.hpp>
+using namespace sf;
 
-//constructor
+
 Tile::Tile(){
     this->reset();
 }
 
-//reset
+
 void Tile::reset(){
+    //reset all values
     _identity = -1;
     _revealed = false;
     _flagged = false;
 }
 
-//init
+
 bool Tile::init(const int value){
+    //update identity if not already set
     if (_identity == -1){
         _identity = value;
         return true;
@@ -25,7 +28,8 @@ bool Tile::init(const int value){
     }
 }
 
-void Tile::initSprites(sf::Sprite unopened, sf::Sprite flagged, sf::Sprite opened, sf::Sprite revealbomb, sf::Sprite xbomb){
+
+void Tile::setSprites(Sprite unopened, Sprite flagged, Sprite opened, Sprite revealbomb, Sprite xbomb){
     _spriteUnopened = unopened;
     _spriteFlagged = flagged;
     _spriteOpened = opened;
@@ -33,8 +37,9 @@ void Tile::initSprites(sf::Sprite unopened, sf::Sprite flagged, sf::Sprite opene
     _spriteXBomb = xbomb;
 }
 
-//draw
-void Tile::draw(sf::RenderWindow &window) const {
+
+void Tile::draw(RenderWindow &window) const {
+    //draw the appropriate tile
     if (_revealed){
         window.draw(_spriteOpened);
     } else if (_flagged){
@@ -44,7 +49,9 @@ void Tile::draw(sf::RenderWindow &window) const {
     }
 }
 
-void Tile::drawLose(sf::RenderWindow &window) const {
+
+void Tile::drawLose(RenderWindow &window) const {
+    //if tile is a bomb
     if (_identity == 9){
         if (_revealed){
             window.draw(_spriteOpened);
@@ -53,16 +60,19 @@ void Tile::drawLose(sf::RenderWindow &window) const {
         } else {
             window.draw(_spriteRevealBomb);
         }
+    //else draw normally
     } else {
         this->draw(window);
     }
 }
 
-void Tile::drawWin(sf::RenderWindow &window) const {
-    if (_identity != 9){
-        window.draw(_spriteOpened);
-    } else {
+
+void Tile::drawWin(RenderWindow &window) const {
+    //if bomb
+    if (_identity == 9){
         window.draw(_spriteFlagged);
+    } else {
+        window.draw(_spriteOpened);
     }
 }
 
