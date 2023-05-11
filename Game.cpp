@@ -21,6 +21,7 @@ Game::Game(){
     _width = 0;
     _height = 0;
     _numBombs = 0;
+    _chordingEnabled = false;
     _gameOver = 0;
     _timerRunning = false;
     _startTime = 0;
@@ -73,6 +74,8 @@ bool Game::init(const string configfilename){
             _height = value;
         } else if (id == "numbombs"){
             _numBombs = value;
+        } else if (id == "chording"){
+            _chordingEnabled = value;
         }
     }
 
@@ -230,8 +233,8 @@ void Game::click(const sf::Event::MouseButtonEvent mouse){
         int tilex = mouse.x / TILESIZE - 1;
         int tiley = mouse.y / TILESIZE - 3;
 
-        //if left clicked on tile and tile not flagged
-        if (mouse.button == Mouse::Left && !_grid[tiley][tilex]->isFlagged()){
+        //if left clicked on tile and tile not flagged or revealed
+        if (mouse.button == Mouse::Left && !_grid[tiley][tilex]->isFlagged() && !_grid[tiley][tilex]->isRevealed()){
             //reveal tile and check if bomb
             if(_grid[tiley][tilex]->reveal()){
                 //player loses :(
@@ -242,6 +245,9 @@ void Game::click(const sf::Event::MouseButtonEvent mouse){
                 //start checking if zero tile
                 this->_checkZeroTile(tilex, tiley);
             }
+        //if left clicked, tile already revealed, and chording is enabled
+        } else if (mouse.button == Mouse::Left && _grid[tiley][tilex]->isRevealed() && _chordingEnabled){
+            _chord(tilex, tiley);
         //if right clicked
         } else if (mouse.button == Mouse::Right && !_grid[tiley][tilex]->isRevealed()){
             //flag the tile
@@ -277,4 +283,46 @@ void Game::_checkZeroTile(unsigned int x, unsigned int y) const {
         if (y < _height-1 && x < _width-1 && _grid[y+1][x+1]->revealZero()) _checkZeroTile(x+1, y+1);
     }
     return;
+}
+
+
+
+
+void Game::_chord(unsigned int x, unsigned int y){
+    //return if out of bounds
+    if (x < 0 || x >= _width || y < 0 || y >= _height) return;
+    //return if not revealed or zero
+    if (!_grid[y][x]->isRevealed() || _grid[y][x]->isZero()) return;
+
+    //count number of adjacent flags
+    int adjacentFlagCount = 0;
+    vector<Tile*> nearbyTiles;
+    if (y > 0 && x > 0)                nearbyTiles.push_back(_grid[y-1][x-1]);
+    if (y > 0)                         nearbyTiles.push_back(_grid[y-1][x]);
+    if (y > 0 && x < _width-1)         nearbyTiles.push_back(_grid[y-1][x+1]);
+    if (x > 0)                         nearbyTiles.push_back(_grid[y][x-1]);
+    if (x < _width-1)                  nearbyTiles.push_back(_grid[y][x+1]);
+    if (y < _height-1 && x > 0)        nearbyTiles.push_back(_grid[y+1][x-1]);
+    if (y < _height-1)                 nearbyTiles.push_back(_grid[y+1][x]);
+    if (y < _height-1 && x < _width-1) nearbyTiles.push_back(_grid[y+1][x+1]);
+    for (unsigned int i = 0; i < nearbyTiles.size(); i++){
+        if (nearbyTiles[i]->isFlagged()) adjacentFlagCount++;
+    }
+
+    //if all adjacent bombs have been flagged
+    if (adjacentFlagCount == _grid[y][x]->getIdentity()){
+        //reveal each non-flagged adjacent tile
+        for (unsigned int i = 0; i < nearbyTiles.size(); i++){
+            if(!nearbyTiles[i]->isFlagged() && nearbyTiles[i]->reveal()){
+                //player loses
+                _gameOver = 1;
+                //stop the timer
+                _timerRunning = false;
+            } else {
+                //start checking if zero tile
+                this->_checkZeroTile(x, y);
+            }
+        }
+    }
+
 }

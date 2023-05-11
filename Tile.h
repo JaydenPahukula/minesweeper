@@ -32,6 +32,7 @@ class Tile {
         bool isBomb() const;
         bool isZero() const;
         bool isFlagged() const;
+        int getIdentity() const;
 
     private:
 

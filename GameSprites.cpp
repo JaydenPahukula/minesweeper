@@ -168,7 +168,7 @@ bool Game::_loadTileSprites(){
     Sprite xbombSprite(_tilespritesheet, IntRect(32, 32, 32, 32));
 
     //initialize tiles
-    int nearbyBombCount;
+    int adjacentBombCount;
     int tilex, tiley;
     for (unsigned int y = 0; y < _height; y++){
         for (unsigned int x = 0; x < _width; x++){
@@ -183,24 +183,20 @@ bool Game::_loadTileSprites(){
 
             if (!_grid[y][x]->isBomb()){ //if not already a bomb
                 //count nearby bombs
-                nearbyBombCount = 0;
-                vector<Tile*> nearbyTiles;
-                if (y > 0 && x > 0)                nearbyTiles.push_back(_grid[y-1][x-1]);
-                if (y > 0)                         nearbyTiles.push_back(_grid[y-1][x]);
-                if (y > 0 && x < _width-1)         nearbyTiles.push_back(_grid[y-1][x+1]);
-                if (x > 0)                         nearbyTiles.push_back(_grid[y][x-1]);
-                if (x < _width-1)                  nearbyTiles.push_back(_grid[y][x+1]);
-                if (y < _height-1 && x > 0)        nearbyTiles.push_back(_grid[y+1][x-1]);
-                if (y < _height-1)                 nearbyTiles.push_back(_grid[y+1][x]);
-                if (y < _height-1 && x < _width-1) nearbyTiles.push_back(_grid[y+1][x+1]);
-                for (unsigned int i = 0; i < nearbyTiles.size(); i++){
-                    if (nearbyTiles[i]->isBomb()) nearbyBombCount++;
-                }
+                adjacentBombCount = 0;
+                if (y > 0 && x > 0 && _grid[y-1][x-1]->isBomb())                adjacentBombCount++;
+                if (y > 0 && _grid[y-1][x]->isBomb())                           adjacentBombCount++;
+                if (y > 0 && x < _width-1 && _grid[y-1][x+1]->isBomb())         adjacentBombCount++;
+                if (x > 0 && _grid[y][x-1]->isBomb())                           adjacentBombCount++;
+                if (x < _width-1 && _grid[y][x+1]->isBomb())                    adjacentBombCount++;
+                if (y < _height-1 && x > 0 && _grid[y+1][x-1]->isBomb())        adjacentBombCount++;
+                if (y < _height-1 && _grid[y+1][x]->isBomb())                   adjacentBombCount++;
+                if (y < _height-1 && x < _width-1 && _grid[y+1][x+1]->isBomb()) adjacentBombCount++;
                 //initialize tile
-                _grid[y][x]->init(nearbyBombCount);
+                _grid[y][x]->init(adjacentBombCount);
                 //set sprites
-                openedSprite[nearbyBombCount].setPosition(tilex, tiley);
-                _grid[y][x]->setSprites(unopenedSprite, flaggedSprite, openedSprite[nearbyBombCount], revealbombSprite, xbombSprite);
+                openedSprite[adjacentBombCount].setPosition(tilex, tiley);
+                _grid[y][x]->setSprites(unopenedSprite, flaggedSprite, openedSprite[adjacentBombCount], revealbombSprite, xbombSprite);
             
             } else { //already a bomb
                 //set sprites

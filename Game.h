@@ -39,6 +39,7 @@ class Game {
 
         //game parameters
         unsigned int _width, _height, _numBombs;
+        bool _chordingEnabled;
 
         //game state
         std::vector<std::vector<Tile*>> _grid;
@@ -64,6 +65,7 @@ class Game {
 
         //game functions
         void _checkZeroTile(unsigned int x, unsigned int y) const;
+        void _chord(unsigned int x, unsigned int y);
 
 };
 

@@ -96,4 +96,5 @@ void Tile::flag(){
 bool Tile::isRevealed() const { return _revealed; }
 bool Tile::isBomb() const     { return _identity == 9; }
 bool Tile::isZero() const     { return _identity == 0; }
-bool Tile::isFlagged() const  { return _flagged; }
+bool Tile::isFlagged() const  { return !_revealed && _flagged; }
+int Tile::getIdentity() const { return _identity; }
