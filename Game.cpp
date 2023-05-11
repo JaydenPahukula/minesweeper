@@ -1,7 +1,6 @@
 
 #include "definitions.h"
 #include "Game.h"
-#include "GameSprites.cpp"
 
 #include <SFML/Graphics.hpp>
 using namespace sf;
@@ -244,7 +243,7 @@ void Game::click(const sf::Event::MouseButtonEvent mouse){
                 this->_checkZeroTile(tilex, tiley);
             }
         //if right clicked
-        } else if (mouse.button == Mouse::Right){
+        } else if (mouse.button == Mouse::Right && !_grid[tiley][tilex]->isRevealed()){
             //flag the tile
             _grid[tiley][tilex]->flag();
         }
