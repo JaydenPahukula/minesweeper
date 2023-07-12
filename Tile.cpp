@@ -56,13 +56,19 @@ void Tile::drawLose(RenderWindow &window) const {
         if (_revealed){
             window.draw(_spriteOpened);
         } else if (_flagged){
-            window.draw(_spriteXBomb);
+            window.draw(_spriteFlagged);
         } else {
             window.draw(_spriteRevealBomb);
         }
-    //else draw normally
+    //tile is not a bomb
     } else {
-        this->draw(window);
+        if (_flagged){
+            window.draw(_spriteXBomb);
+        } else if (_revealed){
+            window.draw(_spriteOpened);
+        } else {
+            window.draw(_spriteUnopened);
+        }
     }
 }
 
@@ -76,15 +82,9 @@ void Tile::drawWin(RenderWindow &window) const {
     }
 }
 
-bool Tile::reveal(){
+void Tile::reveal(){
     _revealed = true;
-    return this->isBomb();
-}
-
-bool Tile::revealZero(){
-    bool previouslyRevealed = _revealed;
-    _revealed = true;
-    return (!previouslyRevealed && this->isZero());
+    return;
 }
 
 void Tile::flag(){
@@ -95,6 +95,5 @@ void Tile::flag(){
 //getters
 bool Tile::isRevealed() const { return _revealed; }
 bool Tile::isBomb() const     { return _identity == 9; }
-bool Tile::isZero() const     { return _identity == 0; }
 bool Tile::isFlagged() const  { return !_revealed && _flagged; }
 int Tile::getIdentity() const { return _identity; }

@@ -18,18 +18,27 @@ using namespace std;
 
 Game::Game(){
 
-    _width = 0;
-    _height = 0;
-    _numBombs = 0;
-    _chordingEnabled = false;
-    _gameOver = 0;
-    _timerRunning = false;
-    _startTime = 0;
-    _currTime = 0;
+    //initialize tile grid
+    _width = DEFAULTGAMEWIDTH;
+    _height = DEFAULTGAMEHEIGHT;
+    _grid = vector<vector<Tile*>>(_height, vector<Tile*>(_width, nullptr));
+    for (unsigned int y = 0; y < _height; y++){
+        for (unsigned int x = 0; x < _width; x++){
+            _grid[y][x] = new Tile;
+        }
+    }
 
     //seed random
     srand(time(0));
     srand(time(0)); // <-- it breaks if this isn't here, dont ask why
+
+    //reset values
+    this->reset();
+
+    //load textures sprites
+    if (!_loadGameSprites()){
+        cerr << endl << "error opening game sprite sheet" << endl;
+    }
 
 }
 
@@ -37,6 +46,7 @@ Game::Game(){
 
 
 Game::~Game(){
+    //deallocate tile grid
     for (unsigned int y = 0; y < _height; y++){
         for (unsigned int x = 0; x < _width; x++){
             delete _grid[y][x];
@@ -47,73 +57,16 @@ Game::~Game(){
 
 
 
-bool Game::init(const string configfilename){
-    
-    //open config file
-    ifstream configfile(configfilename);
-    if (!configfile.is_open()){
-        cerr << endl << "error opening config file" << endl;
-        return false;
-    }
-    
-    //parse config file
-    string id;
-    int value;
-    while(!configfile.eof()){
-
-        //read setting name
-        getline(configfile, id, '=');
-        if (id[0] == '\n'){ id.erase(0, 1); }
-        //read value
-        configfile >> value;
-
-        //initialize values
-        if (id == "gamewidth"){
-            _width = value;
-        } else if (id == "gameheight"){
-            _height = value;
-        } else if (id == "numbombs"){
-            _numBombs = value;
-        } else if (id == "chording"){
-            _chordingEnabled = value;
-        }
-    }
-
-    //verify that configuration is valid
-    if (_width < MINGAMEWIDTH || _width > MAXGAMEWIDTH || _height < MINGAMEHEIGHT || _height > MAXGAMEHEIGHT ||
-        _numBombs < 1 || _numBombs > _width*_height || _numBombs > 999){
-        cerr << endl << "invalid configuration" << endl;
-        return false;
-    }
-    
-    //initialize grid
-    _grid = vector<vector<Tile*>>(_height, vector<Tile*>(_width, nullptr));
-    for (unsigned int y = 0; y < _height; y++){
-        for (unsigned int x = 0; x < _width; x++){
-            _grid[y][x] = new Tile;
-        }
-    }
-    
-    //load textures sprites
-    if (!_loadGameSprites()){
-        cerr << endl << "error opening game sprite sheet" << endl;
-        return false;
-    }
-    
-    //reset all game states
-    this->reset();
-    
-    return true;
-}
-
-
-
-
 void Game::reset(){
 
     //reset values
+    _width = DEFAULTGAMEWIDTH;
+    _height = DEFAULTGAMEHEIGHT;
+    _numBombs = DEFAULTNUMBOMBS;
+    _chordingEnabled = CHORDING;
     _gameOver = 0;
     _timerRunning = false;
+    _startTime = 0;
     _currTime = 0;
 
     //reset each tile
@@ -236,19 +189,20 @@ void Game::click(const sf::Event::MouseButtonEvent mouse){
         //if left clicked on tile and tile not flagged or revealed
         if (mouse.button == Mouse::Left && !_grid[tiley][tilex]->isFlagged() && !_grid[tiley][tilex]->isRevealed()){
             //reveal tile and check if bomb
-            if(_grid[tiley][tilex]->reveal()){
+            _grid[tiley][tilex]->reveal();
+            if(_grid[tiley][tilex]->isBomb()){
                 //player loses :(
                 _gameOver = 1;
                 //stop the timer
                 _timerRunning = false;
             } else {
                 //start checking if zero tile
-                this->_checkZeroTile(tilex, tiley);
+                this->_checkZeroTile(tilex, tiley, true);
             }
         //if left clicked, tile already revealed, and chording is enabled
         } else if (mouse.button == Mouse::Left && _grid[tiley][tilex]->isRevealed() && _chordingEnabled){
             _chord(tilex, tiley);
-        //if right clicked
+        //if right clicked and tile is not revealed
         } else if (mouse.button == Mouse::Right && !_grid[tiley][tilex]->isRevealed()){
             //flag the tile
             _grid[tiley][tilex]->flag();
@@ -267,20 +221,26 @@ unsigned int Game::height() const { return _height; }
 
 
 
-void Game::_checkZeroTile(unsigned int x, unsigned int y) const {
+void Game::_checkZeroTile(unsigned int x, unsigned int y, bool first) const {
     //return if out of bounds
     if (x < 0 || x >= _width || y < 0 || y >= _height) return; 
-    
-    if (_grid[y][x]->isZero()){
-        //reveal all adjacent tiles, and recurse on zero tiles
-        if (y > 0 && x > 0 && _grid[y-1][x-1]->revealZero())                _checkZeroTile(x-1, y-1);
-        if (y > 0 && _grid[y-1][x]->revealZero())                           _checkZeroTile(x, y-1);
-        if (y > 0 && x < _width-1 && _grid[y-1][x+1]->revealZero())         _checkZeroTile(x+1, y-1);
-        if (x > 0 && _grid[y][x-1]->revealZero())                           _checkZeroTile(x-1, y);
-        if (x < _width-1 && _grid[y][x+1]->revealZero())                    _checkZeroTile(x+1, y);
-        if (y < _height-1 && x > 0 && _grid[y+1][x-1]->revealZero())        _checkZeroTile(x-1, y+1);
-        if (y < _height-1 && _grid[y+1][x]->revealZero())                   _checkZeroTile(x, y+1);
-        if (y < _height-1 && x < _width-1 && _grid[y+1][x+1]->revealZero()) _checkZeroTile(x+1, y+1);
+
+    //return if tile has already been visited
+    if (_grid[y][x]->isRevealed() && _grid[y][x]->getIdentity() == 0 && !first) return;
+
+    //open tile if not flagged
+    if (!_grid[y][x]->isFlagged()) _grid[y][x]->reveal();
+
+    //if tile is zero, recurse on adjacent tiles
+    if (_grid[y][x]->getIdentity() == 0){
+        if (y > 0 && x > 0)                 _checkZeroTile(x-1, y-1, false);
+        if (y > 0)                          _checkZeroTile(x, y-1, false);
+        if (y > 0 && x < _width-1)          _checkZeroTile(x+1, y-1, false);
+        if (x > 0)                          _checkZeroTile(x-1, y, false);
+        if (x < _width-1)                   _checkZeroTile(x+1, y, false);
+        if (y < _height-1 && x > 0)         _checkZeroTile(x-1, y+1, false);
+        if (y < _height-1)                  _checkZeroTile(x, y+1, false);
+        if (y < _height-1 && x < _width-1)  _checkZeroTile(x+1, y+1, false);
     }
     return;
 }
@@ -292,35 +252,47 @@ void Game::_chord(unsigned int x, unsigned int y){
     //return if out of bounds
     if (x < 0 || x >= _width || y < 0 || y >= _height) return;
     //return if not revealed or zero
-    if (!_grid[y][x]->isRevealed() || _grid[y][x]->isZero()) return;
+    if (!_grid[y][x]->isRevealed() || _grid[y][x]->getIdentity() == 0) return;
 
     //count number of adjacent flags
     int adjacentFlagCount = 0;
-    vector<Tile*> nearbyTiles;
-    if (y > 0 && x > 0)                nearbyTiles.push_back(_grid[y-1][x-1]);
-    if (y > 0)                         nearbyTiles.push_back(_grid[y-1][x]);
-    if (y > 0 && x < _width-1)         nearbyTiles.push_back(_grid[y-1][x+1]);
-    if (x > 0)                         nearbyTiles.push_back(_grid[y][x-1]);
-    if (x < _width-1)                  nearbyTiles.push_back(_grid[y][x+1]);
-    if (y < _height-1 && x > 0)        nearbyTiles.push_back(_grid[y+1][x-1]);
-    if (y < _height-1)                 nearbyTiles.push_back(_grid[y+1][x]);
-    if (y < _height-1 && x < _width-1) nearbyTiles.push_back(_grid[y+1][x+1]);
-    for (unsigned int i = 0; i < nearbyTiles.size(); i++){
-        if (nearbyTiles[i]->isFlagged()) adjacentFlagCount++;
+    vector<unsigned int> nearbyTilesX;
+    vector<unsigned int> nearbyTilesY;
+    if (y > 0 && x > 0)                { nearbyTilesX.push_back(x-1); nearbyTilesY.push_back(y-1); }
+    if (y > 0)                         { nearbyTilesX.push_back(x);   nearbyTilesY.push_back(y-1); }
+    if (y > 0 && x < _width-1)         { nearbyTilesX.push_back(x+1); nearbyTilesY.push_back(y-1); }
+    if (x > 0)                         { nearbyTilesX.push_back(x-1); nearbyTilesY.push_back(y);   }
+    if (x < _width-1)                  { nearbyTilesX.push_back(x+1); nearbyTilesY.push_back(y);   }
+    if (y < _height-1 && x > 0)        { nearbyTilesX.push_back(x-1); nearbyTilesY.push_back(y+1); }
+    if (y < _height-1)                 { nearbyTilesX.push_back(x);   nearbyTilesY.push_back(y+1); }
+    if (y < _height-1 && x < _width-1) { nearbyTilesX.push_back(x+1); nearbyTilesY.push_back(y+1); }
+    for (unsigned int i = 0; i < nearbyTilesX.size(); i++){
+        if (_grid[nearbyTilesY[i]][nearbyTilesX[i]]->isFlagged()) adjacentFlagCount++;
     }
 
     //if all adjacent bombs have been flagged
     if (adjacentFlagCount == _grid[y][x]->getIdentity()){
+
         //reveal each non-flagged adjacent tile
-        for (unsigned int i = 0; i < nearbyTiles.size(); i++){
-            if(!nearbyTiles[i]->isFlagged() && nearbyTiles[i]->reveal()){
+        Tile* neighbor;
+        for (unsigned int i = 0; i < nearbyTilesX.size(); i++){
+
+            neighbor = _grid[nearbyTilesY[i]][nearbyTilesX[i]];
+            
+            //skip flagged or revealed tiles
+            if (neighbor->isFlagged() || neighbor->isRevealed()) continue;
+
+            //reveal tile
+            neighbor->reveal();
+
+            if(neighbor->isBomb()){
                 //player loses
                 _gameOver = 1;
                 //stop the timer
                 _timerRunning = false;
             } else {
                 //start checking if zero tile
-                this->_checkZeroTile(x, y);
+                this->_checkZeroTile(nearbyTilesX[i], nearbyTilesY[i], true);
             }
         }
     }

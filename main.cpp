@@ -11,11 +11,6 @@ int main() {
     //create game
     Game game;
 
-    //initialize game
-    if (!game.init(CONFIGFILE)){
-        return -1;
-    }
-
     //create window
     RenderWindow window( VideoMode((game.width()+2)*TILESIZE, (game.height()+4)*TILESIZE), "Minesweeper", sf::Style::Close);
 

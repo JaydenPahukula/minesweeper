@@ -20,7 +20,7 @@ class Game {
         ~Game();
 
         //initialize the game from config file
-        bool init(const std::string configfilename);
+        bool init();
 
         //reset the game
         void reset();
@@ -64,7 +64,7 @@ class Game {
         time_t _startTime, _currTime;
 
         //game functions
-        void _checkZeroTile(unsigned int x, unsigned int y) const;
+        void _checkZeroTile(unsigned int x, unsigned int y, bool first) const;
         void _chord(unsigned int x, unsigned int y);
 
 };

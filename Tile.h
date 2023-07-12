@@ -23,14 +23,12 @@ class Tile {
         void drawWin(sf::RenderWindow &window) const;
 
         //actions
-        bool reveal();
-        bool revealZero();
+        void reveal();
         void flag();
 
         //getters
         bool isRevealed() const;
         bool isBomb() const;
-        bool isZero() const;
         bool isFlagged() const;
         int getIdentity() const;
 
@@ -40,10 +38,12 @@ class Tile {
         bool _revealed;
         bool _flagged;
         int _identity;
-        //    identity key:
-        //   -1 - uninitialized
-        //  0-8 - the are x bombs nearby
-        //    9 - bomb
+        /*
+        identity key:
+           -1 - uninitialized
+          0-8 - the are x bombs nearby
+            9 - bomb
+        */
 
         //sprites
         sf::Sprite _spriteUnopened,
