@@ -6,27 +6,27 @@
 
 class Tile {
     public:
-        //constructor
+        // constructor
         Tile();
 
-        //reset the tile
+        // reset the tile
         void reset();
 
-        //initialize the tile
+        // initialize the tile
         bool init(const int value);
-        //initialze the tile's sprites
+        // initialze the tile's sprites
         void setSprites(sf::Sprite unopened, sf::Sprite flag, sf::Sprite opened, sf::Sprite revealbomb, sf::Sprite xbomb);
 
-        //draw the tile
+        // draw the tile
         void draw(sf::RenderWindow &window) const;
         void drawLose(sf::RenderWindow &window) const;
         void drawWin(sf::RenderWindow &window) const;
 
-        //actions
+        // actions
         void reveal();
         void flag();
 
-        //getters
+        // getters
         bool isRevealed() const;
         bool isBomb() const;
         bool isFlagged() const;
@@ -34,7 +34,7 @@ class Tile {
 
     private:
 
-        //tile state
+        // tile state
         bool _revealed;
         bool _flagged;
         int _identity;
@@ -45,7 +45,7 @@ class Tile {
             9 - bomb
         */
 
-        //sprites
+        // sprites
         sf::Sprite _spriteUnopened,
                    _spriteFlagged,
                    _spriteOpened,

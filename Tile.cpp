@@ -11,7 +11,7 @@ Tile::Tile(){
 
 
 void Tile::reset(){
-    //reset all values
+    // reset all values
     _identity = -1;
     _revealed = false;
     _flagged = false;
@@ -19,7 +19,7 @@ void Tile::reset(){
 
 
 bool Tile::init(const int value){
-    //update identity if not already set
+    // update identity if not already set
     if (_identity == -1){
         _identity = value;
         return true;
@@ -39,7 +39,7 @@ void Tile::setSprites(Sprite unopened, Sprite flagged, Sprite opened, Sprite rev
 
 
 void Tile::draw(RenderWindow &window) const {
-    //draw the appropriate tile
+    // draw the appropriate tile
     if (_revealed){
         window.draw(_spriteOpened);
     } else if (_flagged){
@@ -51,7 +51,7 @@ void Tile::draw(RenderWindow &window) const {
 
 
 void Tile::drawLose(RenderWindow &window) const {
-    //if tile is a bomb
+    // if tile is a bomb
     if (_identity == 9){
         if (_revealed){
             window.draw(_spriteOpened);
@@ -60,7 +60,7 @@ void Tile::drawLose(RenderWindow &window) const {
         } else {
             window.draw(_spriteRevealBomb);
         }
-    //tile is not a bomb
+    // tile is not a bomb
     } else {
         if (_flagged){
             window.draw(_spriteXBomb);
@@ -74,7 +74,7 @@ void Tile::drawLose(RenderWindow &window) const {
 
 
 void Tile::drawWin(RenderWindow &window) const {
-    //if bomb
+    // if bomb
     if (_identity == 9){
         window.draw(_spriteFlagged);
     } else {

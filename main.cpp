@@ -8,30 +8,30 @@ using namespace sf;
 
 int main() {
 
-    //create game
+    // create game
     Game game;
 
-    //create window
+    // create window
     RenderWindow window( VideoMode((game.width()+2)*TILESIZE, (game.height()+4)*TILESIZE), "Minesweeper", sf::Style::Close);
 
-    //set window icon
+    // set window icon
     Image icon;
     icon.loadFromFile(ICONFILE);
     window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
 
-    //draw loop
+    // draw loop
     Event event;
     while( window.isOpen() ) {
         window.clear();
 
-        //draw game
+        // draw game
         game.draw(window);
 
         window.display();
         while( window.pollEvent(event) ) {
-            if (event.type == Event::MouseButtonPressed){ //if mouse clicked
+            if (event.type == Event::MouseButtonPressed){ // if mouse clicked
                 game.click(event.mouseButton);
-            } else if(event.type == Event::Closed) { //if window closed
+            } else if(event.type == Event::Closed) { // if window closed
                 window.close();
             }
         }

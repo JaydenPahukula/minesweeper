@@ -14,34 +14,34 @@
 class Game {
     public:
     
-        //constructor
+        // constructor
         Game();
-        //destructor
+        // destructor
         ~Game();
 
-        //initialize the game from config file
+        // initialize the game from config file
         bool init();
 
-        //reset the game
+        // reset the game
         void reset();
 
-        //draw the game
+        // draw the game
         void draw(sf::RenderWindow &window);
 
-        //click event
+        // click event
         void click(const sf::Event::MouseButtonEvent mouse);
 
-        //getters
+        // getters
         unsigned int width() const;
         unsigned int height() const;
 
     private:
 
-        //game parameters
+        // game parameters
         unsigned int _width, _height, _numBombs;
         bool _chordingEnabled;
 
-        //game state
+        // game state
         std::vector<std::vector<Tile*>> _grid;
         unsigned int _gameOver;
         // _gameOver key:
@@ -49,7 +49,7 @@ class Game {
         // 1 - game over, player lost
         // 2 - game over, player won
 
-        //textures and sprites
+        // textures and sprites
         bool _loadGameSprites();
         bool _loadTileSprites();
         sf::Texture _gamespritesheet, _tilespritesheet;
@@ -59,11 +59,11 @@ class Game {
                    _sadSprite;
         sf::Sprite _digitSprites[6][10];
 
-        //timer
+        // timer
         bool _timerRunning;
         time_t _startTime, _currTime;
 
-        //game functions
+        // game functions
         void _checkZeroTile(unsigned int x, unsigned int y, bool first) const;
         void _chord(unsigned int x, unsigned int y);
 
