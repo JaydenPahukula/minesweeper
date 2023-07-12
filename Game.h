@@ -29,11 +29,15 @@ class Game {
         void draw(sf::RenderWindow &window);
 
         // click event
-        void click(const sf::Event::MouseButtonEvent mouse);
+        void click(const sf::Event::MouseButtonEvent mouse, unsigned int x, unsigned int y);
 
         // getters
         unsigned int width() const;
         unsigned int height() const;
+        unsigned int gameOver() const;
+        bool isTimerRunning() const;
+        time_t startTime() const;
+        unsigned int numBombsRemaining() const;
 
     private:
 
@@ -44,27 +48,25 @@ class Game {
         // game state
         std::vector<std::vector<Tile*>> _grid;
         unsigned int _gameOver;
+        unsigned int _numBombsRemaining;
         // _gameOver key:
         // 0 - game in progress
         // 1 - game over, player lost
         // 2 - game over, player won
 
         // textures and sprites
-        bool _loadGameSprites();
         bool _loadTileSprites();
-        sf::Texture _gamespritesheet, _tilespritesheet;
-        std::vector<sf::Sprite> _bkgSprites;
-        sf::Sprite _happySprite,
-                   _coolSprite,
-                   _sadSprite;
-        sf::Sprite _digitSprites[6][10];
+        sf::Texture _tilespritesheet;
 
         // timer
         bool _timerRunning;
-        time_t _startTime, _currTime;
+        time_t _startTime;
 
         // game functions
-        void _checkZeroTile(unsigned int x, unsigned int y, bool first) const;
+        void _playerWins();
+        void _playerLoses();
+        void _revealTile(unsigned int x, unsigned int y);
+        void _checkZeroTile(unsigned int x, unsigned int y, bool first);
         void _chord(unsigned int x, unsigned int y);
 
 };

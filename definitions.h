@@ -1,12 +1,12 @@
 
 #define CONFIGFILE          "config.txt"
+#define APPSPRITESHEET     "assets/appspritesheet.png"
 #define GAMESPRITESHEET     "assets/gamespritesheet.png"
-#define TILESPRITESHEET     "assets/tilespritesheet.png"
 #define ICONFILE            "assets/icon.png"
 
 #define DEFAULTGAMEWIDTH    10
 #define DEFAULTGAMEHEIGHT   10
-#define DEFAULTNUMBOMBS     6
+#define DEFAULTNUMBOMBS     12
 
 #define MAXGAMEWIDTH        64
 #define MINGAMEWIDTH        8

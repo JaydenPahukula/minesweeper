@@ -1,18 +1,20 @@
 
+#include "definitions.h"
+#include "App.h"
+
 #include <SFML/Graphics.hpp>
 using namespace sf;
 
-#include "definitions.h"
-#include "Game.h"
-
+#include <iostream>
+using namespace std;
 
 int main() {
-
+    
     // create game
-    Game game;
-
+    App app;
+    
     // create window
-    RenderWindow window( VideoMode((game.width()+2)*TILESIZE, (game.height()+4)*TILESIZE), "Minesweeper", sf::Style::Close);
+    RenderWindow window( VideoMode((app.gameWidth()+2)*TILESIZE, (app.gameHeight()+4)*TILESIZE), "Minesweeper", sf::Style::Close);
 
     // set window icon
     Image icon;
@@ -25,12 +27,12 @@ int main() {
         window.clear();
 
         // draw game
-        game.draw(window);
+        app.draw(window);
 
         window.display();
         while( window.pollEvent(event) ) {
             if (event.type == Event::MouseButtonPressed){ // if mouse clicked
-                game.click(event.mouseButton);
+                app.click(event.mouseButton);
             } else if(event.type == Event::Closed) { // if window closed
                 window.close();
             }
