@@ -1,4 +1,0 @@
-gamewidth=32
-gameheight=32
-numbombs=80
-chording=1
