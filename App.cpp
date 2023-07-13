@@ -19,6 +19,8 @@ App::App(){
     _timerRunning = false;
     _currTime = 0;
     _startTime = 0;
+    _windowWidth = (DEFAULTGAMEWIDTH+2)*TILESIZE;
+    _windowHeight = (DEFAULTGAMEHEIGHT+4)*TILESIZE;
 
     // seed random
     srand(time(0));
@@ -89,7 +91,16 @@ void App::draw(RenderWindow &window){
 
 
 
-void App::click(const sf::Event::MouseButtonEvent mouse){
+void App::resize(const Event::SizeEvent newSize, RenderWindow &window){
+    _windowWidth = newSize.width;
+    _windowHeight = newSize.height;
+    window.setView(sf::View(Vector2f(_windowWidth/2, _windowHeight/2), sf::Vector2f((float)_windowWidth, (float)_windowHeight)));
+}
+
+
+
+
+void App::click(const Event::MouseButtonEvent mouse){
 
     unsigned int w = gameWidth();
     unsigned int h = gameHeight();
@@ -120,8 +131,10 @@ void App::click(const sf::Event::MouseButtonEvent mouse){
 
 
 
-unsigned int App::gameWidth() const  { return _game->width();  }
+unsigned int App::gameWidth() const { return _game->width(); }
 unsigned int App::gameHeight() const { return _game->height(); }
+unsigned int App::windowWidth() const { return _windowWidth; }
+unsigned int App::windowHeight() const { return _windowHeight; }
 
 
 

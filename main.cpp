@@ -14,7 +14,8 @@ int main() {
     App app;
     
     // create window
-    RenderWindow window( VideoMode((app.gameWidth()+2)*TILESIZE, (app.gameHeight()+4)*TILESIZE), "Minesweeper", sf::Style::Close);
+    //RenderWindow window( VideoMode((app.gameWidth()+2)*TILESIZE, (app.gameHeight()+4)*TILESIZE), "Minesweeper", sf::Style::Default);
+    RenderWindow window( VideoMode(app.windowWidth(), app.windowHeight()), "Minesweeper", sf::Style::Default);
     window.setFramerateLimit(60);
 
     // set window icon
@@ -34,7 +35,9 @@ int main() {
         while( window.pollEvent(event) ) {
             if (event.type == Event::MouseButtonPressed){ // if mouse clicked
                 app.click(event.mouseButton);
-            } else if(event.type == Event::Closed) { // if window closed
+            } else if(event.type == Event::Resized){ // if window resized
+                app.resize(event.size, window);
+            } else if(event.type == Event::Closed){ // if window closed
                 window.close();
             }
         }

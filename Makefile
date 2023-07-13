@@ -1,5 +1,5 @@
 TARGET = minesweeper
-SRC_FILES = main.cpp Game.cpp Tile.cpp App.cpp
+SRC_FILES = App.cpp main.cpp Game.cpp Tile.cpp
 
 CXX = g++
 CFLAGS = -Wall -g -std=c++11
