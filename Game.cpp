@@ -12,7 +12,6 @@ using namespace sf;
 using namespace std;
 
 #include <cstdlib>
-#include <ctime>
 
 
 
@@ -57,8 +56,6 @@ void Game::reset(){
     _chordingEnabled = CHORDING;
     _numBombsRemaining = _numBombs;
     _gameOver = 0;
-    _timerRunning = false;
-    _startTime = 0;
 
     // reset each tile
     for (unsigned int y = 0; y < _height; y++){
@@ -110,12 +107,6 @@ void Game::draw(sf::RenderWindow& window){
 
 void Game::click(const sf::Event::MouseButtonEvent mouse, unsigned int x, unsigned int y){
 
-    // start timer if not already started
-    if (!_timerRunning){
-        _timerRunning = true;
-        _startTime = time(0);
-    }
-
     // if left clicked and tile not flagged or revealed
     if (mouse.button == Mouse::Left && !_grid[y][x]->isFlagged() && !_grid[y][x]->isRevealed()){
         // reveal tile
@@ -145,22 +136,18 @@ void Game::click(const sf::Event::MouseButtonEvent mouse, unsigned int x, unsign
 unsigned int Game::width() const { return _width; }
 unsigned int Game::height() const { return _height; }
 unsigned int Game::gameOver() const { return _gameOver; }
-bool Game::isTimerRunning() const { return _timerRunning; }
-time_t Game::startTime() const { return _startTime; }
 unsigned int Game::numBombsRemaining() const { return _numBombsRemaining; }
 
 
 
 void Game::_playerWins(){
     _gameOver = 2;
-    _timerRunning = false;
     _numBombsRemaining = 0;
 }
 
 
 void Game::_playerLoses(){
     _gameOver = 1;
-    _timerRunning = false;
 }
 
 

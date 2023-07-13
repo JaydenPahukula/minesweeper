@@ -35,8 +35,6 @@ class Game {
         unsigned int width() const;
         unsigned int height() const;
         unsigned int gameOver() const;
-        bool isTimerRunning() const;
-        time_t startTime() const;
         unsigned int numBombsRemaining() const;
 
     private:
@@ -53,10 +51,6 @@ class Game {
         // textures and sprites
         bool _loadTileSprites();
         sf::Texture _tilespritesheet;
-
-        // timer
-        bool _timerRunning;
-        time_t _startTime;
 
         // game functions
         void _playerWins();

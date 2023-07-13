@@ -9,9 +9,16 @@ using namespace sf;
 #include <iostream>
 using namespace std;
 
+#include <ctime>
+
 
 
 App::App(){
+
+    // initialize values
+    _timerRunning = false;
+    _currTime = 0;
+    _startTime = 0;
 
     // seed random
     srand(time(0));
@@ -42,7 +49,8 @@ void App::draw(RenderWindow &window){
     }
 
     // draw smiley face
-    switch (_game->gameOver()){
+    unsigned int isGameOver = _game->gameOver();
+    switch (isGameOver){
         case 0:
             window.draw(_happyFaceSprite); break;
         case 1:
@@ -60,8 +68,11 @@ void App::draw(RenderWindow &window){
     window.draw(_digitSprites[2][numBombsRemaining%10]);
 
     // update timer
-    if (_game->isTimerRunning()){
-        _currTime = time(0) - _game->startTime();
+    if (isGameOver){
+        _timerRunning = false;
+    }
+    if (_timerRunning){
+        _currTime = time(0) - _startTime;
     }
 
     // draw timer
@@ -87,10 +98,18 @@ void App::click(const sf::Event::MouseButtonEvent mouse){
     if (mouse.button == Mouse::Left && mouse.x > (int)w/2*TILESIZE && mouse.x < (int)(w+4)/2*TILESIZE && mouse.y > 16 && mouse.y < 80){
         _game->reset();
         _currTime = 0;
+        _timerRunning = false;
     }
 
     // clicked on game feild
     if (!_game->gameOver() && mouse.x > TILESIZE && mouse.x < (int)(w+1)*TILESIZE && mouse.y > (int)TILESIZE*3 && mouse.y < (int)(h+3)*TILESIZE){ 
+
+        // start timer if not already started
+        if (!_timerRunning){
+            _startTime = time(0);
+            _timerRunning = true;
+        }
+
         int tilex = mouse.x / TILESIZE - 1;
         int tiley = mouse.y / TILESIZE - 3;
         _game->click(mouse, tilex, tiley);
