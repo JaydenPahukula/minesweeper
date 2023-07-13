@@ -18,8 +18,8 @@ using namespace std;
 Game::Game(){
 
     // initialize tile grid
-    _width = DEFAULTGAMEWIDTH;
-    _height = DEFAULTGAMEHEIGHT;
+    _width = GAMEWIDTH;
+    _height = GAMEHEIGHT;
     _grid = vector<vector<Tile*>>(_height, vector<Tile*>(_width, nullptr));
     for (unsigned int y = 0; y < _height; y++){
         for (unsigned int x = 0; x < _width; x++){
@@ -50,9 +50,9 @@ Game::~Game(){
 void Game::reset(){
 
     // reset values
-    _width = DEFAULTGAMEWIDTH;
-    _height = DEFAULTGAMEHEIGHT;
-    _numBombs = DEFAULTNUMBOMBS;
+    _width = GAMEWIDTH;
+    _height = GAMEHEIGHT;
+    _numBombs = NUMBOMBS;
     _chordingEnabled = CHORDING;
     _numBombsRemaining = _numBombs;
     _gameOver = 0;
@@ -106,6 +106,9 @@ void Game::draw(sf::RenderWindow& window){
 
 
 void Game::click(const sf::Event::MouseButtonEvent mouse, unsigned int x, unsigned int y){
+
+    // return if out of bounds
+    if (x < 0 || x >= _width || y < 0 || y >= _height) return; 
 
     // if left clicked and tile not flagged or revealed
     if (mouse.button == Mouse::Left && !_grid[y][x]->isFlagged() && !_grid[y][x]->isRevealed()){

@@ -4,9 +4,9 @@
 #define GAMESPRITESHEET     "assets/gamespritesheet.png"
 #define ICONFILE            "assets/icon.png"
 
-#define DEFAULTGAMEWIDTH    8
-#define DEFAULTGAMEHEIGHT   8
-#define DEFAULTNUMBOMBS     8
+#define GAMEWIDTH           8
+#define GAMEHEIGHT          8
+#define NUMBOMBS            8
 
 #define DEFAULTTILESIZE     32
 

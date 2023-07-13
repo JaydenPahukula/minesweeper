@@ -39,6 +39,8 @@ class App {
         // window
         unsigned int _windowWidth;
         unsigned int _windowHeight;
+        unsigned int _minWindowWidth;
+        unsigned int _minWindowHeight;
 
         // timer
         bool _timerRunning;
@@ -46,9 +48,10 @@ class App {
 
         // sprites
         sf::Texture _appspritesheet;
-        std::vector<sf::Sprite> _borderSprites;
+        sf::Sprite _tlc, _t, _trc, _tls, _tm, _trs, _tlg, _tg, _trg, _lg, _rg, _blg, _bg, _brg;
         sf::Sprite _happyFaceSprite, _coolFaceSprite, _sadFaceSprite;
         sf::Sprite _digitSprites[6][10];
+        sf::RectangleShape _background;
 
         bool _loadBorderSprites();
 
