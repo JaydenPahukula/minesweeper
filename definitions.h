@@ -18,3 +18,5 @@
 #define CHORDING            true
 
 #define TILESIZE            32
+#define SPRITETILESIZE      16
+#define SPRITESCALE         TILESIZE/SPRITETILESIZE

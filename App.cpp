@@ -151,70 +151,71 @@ bool App::_loadBorderSprites(){
 
     // set all background sprites
     Sprite newSprite(_appspritesheet);
+    newSprite.setScale(SPRITESCALE, SPRITESCALE);
     // top left corner
-    newSprite.setTextureRect(IntRect(0, 0, 32, 32));
+    newSprite.setTextureRect(IntRect(0, 0, 16, 16));
     newSprite.setPosition(0, 0);
     _borderSprites.push_back(newSprite);
     // top right corner
-    newSprite.setTextureRect(IntRect(64, 0, 32, 32));
+    newSprite.setTextureRect(IntRect(32, 0, 16, 16));
     newSprite.setPosition((w+1)*TILESIZE, 0);
     _borderSprites.push_back(newSprite);
     // top left side
-    newSprite.setTextureRect(IntRect(0, 32, 32, 32));
-    newSprite.setPosition(0, 32);
+    newSprite.setTextureRect(IntRect(0, 16, 16, 16));
+    newSprite.setPosition(0, TILESIZE);
     _borderSprites.push_back(newSprite);
     // top right side
-    newSprite.setTextureRect(IntRect(64, 32, 32, 32));
-    newSprite.setPosition((w+1)*TILESIZE, 32);
+    newSprite.setTextureRect(IntRect(32, 16, 16, 16));
+    newSprite.setPosition((w+1)*TILESIZE, TILESIZE);
     _borderSprites.push_back(newSprite);
     // top left grid corner
-    newSprite.setTextureRect(IntRect(0, 64, 32, 32));
+    newSprite.setTextureRect(IntRect(0, 32, 16, 16));
     newSprite.setPosition(0, 2*TILESIZE);
     _borderSprites.push_back(newSprite);
     // top right grid corner
-    newSprite.setTextureRect(IntRect(64, 64, 32, 32));
+    newSprite.setTextureRect(IntRect(32, 32, 16, 16));
     newSprite.setPosition((w+1)*TILESIZE, 2*TILESIZE);
     _borderSprites.push_back(newSprite);
     // bottom left grid corner
-    newSprite.setTextureRect(IntRect(0, 128, 32, 32));
+    newSprite.setTextureRect(IntRect(0, 64, 16, 16));
     newSprite.setPosition(0, (h+3)*TILESIZE);
     _borderSprites.push_back(newSprite);
     // bottom right grid corner
-    newSprite.setTextureRect(IntRect(64, 128, 32, 32));
+    newSprite.setTextureRect(IntRect(32, 64, 16, 16));
     newSprite.setPosition((w+1)*TILESIZE, (h+3)*TILESIZE);
     _borderSprites.push_back(newSprite);
     // top row
-    newSprite.setTextureRect(IntRect(32, 0, 32, 32));
+    newSprite.setTextureRect(IntRect(16, 0, 16, 16));
     for (unsigned int i = 0; i < w*TILESIZE; i += TILESIZE){
         newSprite.setPosition(TILESIZE+i, 0);
         _borderSprites.push_back(newSprite);
     }
     // top middle row
-    newSprite.setTextureRect(IntRect(32, 32, 32, 32));
+    newSprite.setTextureRect(IntRect(16, 16, 16, 16));
     for (unsigned int i = 0; i < w*TILESIZE; i += TILESIZE){
         newSprite.setPosition(TILESIZE+i, TILESIZE);
         _borderSprites.push_back(newSprite);
     }
     // top grid row
-    newSprite.setTextureRect(IntRect(32, 64, 32, 32));
+    newSprite.setTextureRect(IntRect(16, 32, 16, 16));
     for (unsigned int i = 0; i < w*TILESIZE; i += TILESIZE){
         newSprite.setPosition(TILESIZE+i, TILESIZE*2);
         _borderSprites.push_back(newSprite);
     }
     // bottom row
-    newSprite.setTextureRect(IntRect(32, 128, 32, 32));
+    newSprite.setTextureRect(IntRect(16, 64, 16, 16));
     for (unsigned int i = 0; i < w*TILESIZE; i += TILESIZE){
         newSprite.setPosition(TILESIZE+i, (h+3)*TILESIZE);
         _borderSprites.push_back(newSprite);
     }
     // left column
-    newSprite.setTextureRect(IntRect(0, 96, 32, 32));
+    newSprite.setTextureRect(IntRect(0, 48, 16, 16));
     for (unsigned int i = 0; i < h*TILESIZE; i += TILESIZE){
         newSprite.setPosition(0, (TILESIZE*3)+i);
         _borderSprites.push_back(newSprite);
     }
     // right column
-    newSprite.setTextureRect(IntRect(64, 96, 32, 32));
+    newSprite.setTextureRect(IntRect(32, 48, 16, 16));
     for (unsigned int i = 0; i < h*TILESIZE; i += TILESIZE){
         newSprite.setPosition((w+1)*TILESIZE, (TILESIZE*3)+i);
         _borderSprites.push_back(newSprite);
@@ -222,22 +223,26 @@ bool App::_loadBorderSprites(){
 
     // load happy face
     _happyFaceSprite.setTexture(_appspritesheet);
-    _happyFaceSprite.setTextureRect(IntRect(0, 192, 64, 64));
+    _happyFaceSprite.setScale(SPRITESCALE, SPRITESCALE);
+    _happyFaceSprite.setTextureRect(IntRect(0, 96, 32, 32));
     _happyFaceSprite.setPosition(w/2*TILESIZE, 16);
     // load cool face
     _coolFaceSprite.setTexture(_appspritesheet);
-    _coolFaceSprite.setTextureRect(IntRect(64, 192, 64, 64));
+    _coolFaceSprite.setScale(SPRITESCALE, SPRITESCALE);
+    _coolFaceSprite.setTextureRect(IntRect(32, 96, 32, 32));
     _coolFaceSprite.setPosition(w/2*TILESIZE, 16);
     // load sad face
     _sadFaceSprite.setTexture(_appspritesheet);
-    _sadFaceSprite.setTextureRect(IntRect(128, 192, 64, 64));
+    _sadFaceSprite.setScale(SPRITESCALE, SPRITESCALE);
+    _sadFaceSprite.setTextureRect(IntRect(64, 96, 32, 32));
     _sadFaceSprite.setPosition(w/2*TILESIZE, 16);
 
     // load digits
-    IntRect locations[10] = {IntRect(96, 0, 32, 48), IntRect(128, 0, 32, 48), IntRect(160, 0, 32, 48), IntRect(192, 0, 32, 48),
-                             IntRect(224, 0, 32, 48), IntRect(96, 48, 32, 48), IntRect(128, 48, 32, 48), IntRect(160, 48, 32, 48),
-                             IntRect(192, 48, 32, 48), IntRect(224, 48, 32, 48)};
+    IntRect locations[10] = {IntRect(48, 0, 16, 24), IntRect(64, 0, 16, 24), IntRect(80, 0, 16, 24), IntRect(96, 0, 16, 24),
+                             IntRect(112, 0, 16, 24), IntRect(48, 24, 16, 24), IntRect(64, 24, 16, 24), IntRect(80, 24, 16, 24),
+                             IntRect(96, 24, 16, 24), IntRect(112, 24, 16, 24)};
     Sprite digitSprite(_appspritesheet);
+    digitSprite.setScale(SPRITESCALE, SPRITESCALE);
     digitSprite.setPosition(24, 24);
     for (int digit = 0; digit < 10; digit++){
         digitSprite.setTextureRect(locations[digit]);

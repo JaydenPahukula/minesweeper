@@ -277,20 +277,27 @@ bool Game::_loadTileSprites(){
     _tilespritesheet.setSmooth(false);
 
     // load sprites
-    Sprite unopenedSprite(_tilespritesheet, IntRect(0, 0, 32, 32));
-    Sprite flaggedSprite(_tilespritesheet, IntRect(32, 0, 32, 32));
-    Sprite openedSprite[] = { Sprite(_tilespritesheet, IntRect(64, 32, 32, 32)),
-                              Sprite(_tilespritesheet, IntRect(96, 32, 32, 32)),
-                              Sprite(_tilespritesheet, IntRect(0, 64, 32, 32)),
-                              Sprite(_tilespritesheet, IntRect(32, 64, 32, 32)),
-                              Sprite(_tilespritesheet, IntRect(64, 64, 32, 32)),
-                              Sprite(_tilespritesheet, IntRect(96, 64, 32, 32)),
-                              Sprite(_tilespritesheet, IntRect(0, 96, 32, 32)),
-                              Sprite(_tilespritesheet, IntRect(32, 96, 32, 32)),
-                              Sprite(_tilespritesheet, IntRect(64, 96, 32, 32)),
-                              Sprite(_tilespritesheet, IntRect(0, 32, 32, 32))    };
-    Sprite revealbombSprite(_tilespritesheet, IntRect(96, 0, 32, 32));
-    Sprite xbombSprite(_tilespritesheet, IntRect(32, 32, 32, 32));
+    Sprite unopenedSprite(_tilespritesheet, IntRect(0, 0, 16, 16));
+    unopenedSprite.setScale(SPRITESCALE, SPRITESCALE);
+    Sprite flaggedSprite(_tilespritesheet, IntRect(16, 0, 16, 16));
+    flaggedSprite.setScale(SPRITESCALE, SPRITESCALE);
+    Sprite revealbombSprite(_tilespritesheet, IntRect(48, 0, 16, 16));
+    revealbombSprite.setScale(SPRITESCALE, SPRITESCALE);
+    Sprite xbombSprite(_tilespritesheet, IntRect(16, 16, 16, 16));
+    xbombSprite.setScale(SPRITESCALE, SPRITESCALE);
+    Sprite openedSprite[] = { Sprite(_tilespritesheet, IntRect(32, 16, 16, 16)),
+                              Sprite(_tilespritesheet, IntRect(48, 16, 16, 16)),
+                              Sprite(_tilespritesheet, IntRect(0, 32, 16, 16)),
+                              Sprite(_tilespritesheet, IntRect(16, 32, 16, 16)),
+                              Sprite(_tilespritesheet, IntRect(32, 32, 16, 16)),
+                              Sprite(_tilespritesheet, IntRect(48, 32, 16, 16)),
+                              Sprite(_tilespritesheet, IntRect(0, 48, 16, 16)),
+                              Sprite(_tilespritesheet, IntRect(16, 48, 16, 16)),
+                              Sprite(_tilespritesheet, IntRect(32, 48, 16, 16)),
+                              Sprite(_tilespritesheet, IntRect(0, 16, 16, 16))   };
+    for (unsigned int i = 0; i < 10; i++){
+        openedSprite[i].setScale(SPRITESCALE, SPRITESCALE);
+    }
 
     // initialize tiles
     int adjacentBombCount;
@@ -325,7 +332,7 @@ bool Game::_loadTileSprites(){
             
             } else { // already a bomb
                 // set sprites
-                openedSprite[9].setTextureRect(IntRect(0, 32, 32, 32));
+                openedSprite[9].setTextureRect(IntRect(0, 16, 16, 16));
                 openedSprite[9].setPosition(tilex, tiley);
                 _grid[y][x]->setSprites(unopenedSprite, flaggedSprite, openedSprite[9], revealbombSprite, xbombSprite);
             }
