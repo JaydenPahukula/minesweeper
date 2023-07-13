@@ -3,6 +3,7 @@
 #include "App.h"
 
 #include <SFML/Graphics.hpp>
+#include <SFML/System/Clock.hpp>
 using namespace sf;
 
 #include <iostream>
@@ -15,6 +16,7 @@ int main() {
     
     // create window
     RenderWindow window( VideoMode((app.gameWidth()+2)*TILESIZE, (app.gameHeight()+4)*TILESIZE), "Minesweeper", sf::Style::Close);
+    window.setFramerateLimit(60);
 
     // set window icon
     Image icon;
