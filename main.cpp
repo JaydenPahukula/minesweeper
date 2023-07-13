@@ -3,7 +3,6 @@
 #include "App.h"
 
 #include <SFML/Graphics.hpp>
-#include <SFML/System/Clock.hpp>
 using namespace sf;
 
 #include <iostream>

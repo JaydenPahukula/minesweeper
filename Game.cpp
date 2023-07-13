@@ -120,14 +120,20 @@ void Game::click(const sf::Event::MouseButtonEvent mouse, unsigned int x, unsign
     if (mouse.button == Mouse::Left && !_grid[y][x]->isFlagged() && !_grid[y][x]->isRevealed()){
         // reveal tile
         _revealTile(x, y);
+        // update game
+        _update();
     // if left clicked, tile already revealed, and chording is enabled
     } else if (mouse.button == Mouse::Left && _grid[y][x]->isRevealed() && _chordingEnabled){
         // chord
         _chord(x, y);
+        // update game
+        _update();
     // if right clicked and tile is not revealed
     } else if (mouse.button == Mouse::Right && !_grid[y][x]->isRevealed()){
         // flag the tile
         _grid[y][x]->flag();
+        // update game
+        _update();
     }
 
     return;
@@ -159,6 +165,31 @@ void Game::_playerLoses(){
 
 
 
+void Game::_update(){
+
+    // count remaining bombs and unrevealed tiles
+    unsigned int numFlagged = 0;
+    unsigned int numUnrevealed = 0;
+    for (unsigned int y1 = 0; y1 < _height; y1++){
+        for (unsigned int x1 = 0; x1 < _width; x1++){
+            numFlagged += _grid[y1][x1]->isFlagged();
+            numUnrevealed += !_grid[y1][x1]->isRevealed();
+        }
+    }
+    if (numFlagged > _numBombs) numFlagged = _numBombs;
+
+    // update _numBombsRemaining
+    _numBombsRemaining = _numBombs - numFlagged;
+
+    // check if game is done
+    if (numUnrevealed == _numBombs){
+        _playerWins();
+    }
+
+}
+
+
+
 void Game::_revealTile(unsigned int x, unsigned int y){
 
     // reveal tile
@@ -173,23 +204,6 @@ void Game::_revealTile(unsigned int x, unsigned int y){
     // start checking if zero tile
     _checkZeroTile(x, y, true);
 
-    // count remaining bombs and unrevealed tiles
-    unsigned int numFlagged = 0;
-    unsigned int numUnrevealed = 0;
-    for (unsigned int y1 = 0; y1 < _height; y1++){
-        for (unsigned int x1 = 0; x1 < _width; x1++){
-            numFlagged -= _grid[y1][x1]->isFlagged();
-            numUnrevealed += !_grid[y1][x1]->isRevealed();
-        }
-    }
-
-    // update _numBombsRemaining
-    _numBombsRemaining = _numBombs - numFlagged;
-
-    // check if game is done
-    if (_numBombsRemaining == 0 || numUnrevealed == _numBombsRemaining){
-        _playerWins();
-    }
 }
 
 

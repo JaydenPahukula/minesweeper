@@ -49,10 +49,6 @@ class Game {
         std::vector<std::vector<Tile*>> _grid;
         unsigned int _gameOver;
         unsigned int _numBombsRemaining;
-        // _gameOver key:
-        // 0 - game in progress
-        // 1 - game over, player lost
-        // 2 - game over, player won
 
         // textures and sprites
         bool _loadTileSprites();
@@ -65,6 +61,7 @@ class Game {
         // game functions
         void _playerWins();
         void _playerLoses();
+        void _update();
         void _revealTile(unsigned int x, unsigned int y);
         void _checkZeroTile(unsigned int x, unsigned int y, bool first);
         void _chord(unsigned int x, unsigned int y);
