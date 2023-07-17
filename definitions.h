@@ -4,8 +4,8 @@
 #define GAMESPRITESHEET     "assets/gamespritesheet.png"
 #define ICONFILE            "assets/icon.png"
 
-#define GAMEWIDTH           8
-#define GAMEHEIGHT          8
+#define GAMEWIDTH           10
+#define GAMEHEIGHT          10
 #define NUMBOMBS            8
 
 #define DEFAULTTILESIZE     32
@@ -19,4 +19,3 @@
 
 #define TILESIZE            32
 #define SPRITETILESIZE      16
-#define SPRITESCALE         TILESIZE/SPRITETILESIZE

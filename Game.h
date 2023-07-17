@@ -26,7 +26,7 @@ class Game {
         void reset();
 
         // draw the game
-        void draw(sf::RenderWindow &window);
+        void draw(sf::RenderWindow &window, const sf::RenderStates &states);
 
         // click event
         void click(const sf::Event::MouseButtonEvent mouse, unsigned int x, unsigned int y);

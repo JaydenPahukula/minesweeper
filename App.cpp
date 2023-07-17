@@ -14,21 +14,26 @@ using namespace std;
 
 
 App::App(){
-
+    
     // initialize values
     _timerRunning = false;
     _currTime = 0;
     _startTime = 0;
-    _minWindowWidth = (GAMEWIDTH+2)*TILESIZE;
-    _minWindowHeight = (GAMEHEIGHT+4)*TILESIZE;
-    _windowWidth = _minWindowWidth;
-    _windowHeight = _minWindowHeight;
+    _minWindowWidth = (8+2)*TILESIZE;
+    _minWindowHeight = (8+4)*TILESIZE;
+    _windowWidth = (GAMEWIDTH+2)*TILESIZE;
+    _windowHeight = (GAMEHEIGHT+4)*TILESIZE;
 
     // seed random
     srand(time(0));
 
     // create game
     _game = new Game;
+
+    _updateBoardRestrictions();
+    _boardx = TILESIZE;
+    _boardy = TILESIZE*3;
+    _boardTileSize =  TILESIZE;
 
     // load sprites
     if (!_loadBorderSprites()){
@@ -52,8 +57,10 @@ void App::draw(RenderWindow &window){
     window.draw(_background);
 
     // draw game
-    _game->draw(window);
-
+    RenderStates states;
+    states.transform = Transform().translate(_boardx, _boardy).scale(_boardTileSize/TILESIZE, _boardTileSize/TILESIZE);
+    _game->draw(window, states);
+    
     // draw border
     // top left corner
     _tlc.setPosition(0, 0);
@@ -152,6 +159,18 @@ void App::draw(RenderWindow &window){
     _digitSprites[5][_currTime%10].setPosition(_windowWidth-TILESIZE*(7./4), TILESIZE*(3./4));
     window.draw(_digitSprites[5][_currTime%10]);
 
+    // debug
+    CircleShape x(5, 20);
+    x.setFillColor(Color::Red);
+    x.setPosition(_minBoardx-5, _minBoardy-5);
+    window.draw(x);
+    x.setPosition(_minBoardx-5, _maxBoardy-5);
+    window.draw(x);
+    x.setPosition(_maxBoardx-5, _minBoardy-5);
+    window.draw(x);
+    x.setPosition(_maxBoardx-5, _maxBoardy-5);
+    window.draw(x);
+
     return;
 }
 
@@ -162,7 +181,14 @@ void App::resize(const Event::SizeEvent newSize, RenderWindow &window){
     _windowWidth = max(_minWindowWidth, newSize.width);
     _windowHeight = max(_minWindowHeight, newSize.height);
     window.setSize(Vector2u(_windowWidth, _windowHeight));
-    window.setView(View(Vector2f(_windowWidth/2, _windowHeight/2), Vector2f((float)_windowWidth, (float)_windowHeight)));
+    window.setView(View(Vector2f(_windowWidth/2, _windowHeight/2), Vector2f(_windowWidth, _windowHeight)));
+    _updateBoardRestrictions();
+    _boardTileSize = max(_boardTileSize, (float)(_maxBoardx-_minBoardx)/GAMEWIDTH);
+    _boardx = min(_boardx, _minBoardx);
+    _boardx = max((float)_boardx, _maxBoardx-_boardTileSize*GAMEWIDTH);
+    _boardy = min(_boardy, _minBoardy);
+    _boardy = max((float)_boardy, _maxBoardy-_boardTileSize*GAMEHEIGHT);
+    return;
 }
 
 
@@ -175,6 +201,7 @@ void App::click(const Event::MouseButtonEvent mouse){
         _game->reset();
         _currTime = 0;
         _timerRunning = false;
+        _updateBoardRestrictions();
     }
 
     // clicked on game feild
@@ -186,8 +213,13 @@ void App::click(const Event::MouseButtonEvent mouse){
             _timerRunning = true;
         }
 
-        int tilex = mouse.x / TILESIZE - 1;
-        int tiley = mouse.y / TILESIZE - 3;
+        // get transformed coords
+        Transform boardTransform = Transform().translate(_boardx, _boardy).scale(_boardTileSize/TILESIZE, _boardTileSize/TILESIZE);
+        Vector2f transformedMouse = boardTransform.getInverse().transformPoint(Vector2f(mouse.x, mouse.y));
+        int tilex = transformedMouse.x / TILESIZE;
+        int tiley = transformedMouse.y / TILESIZE;
+
+        // click
         _game->click(mouse, tilex, tiley);
     }
 
@@ -203,6 +235,30 @@ unsigned int App::windowHeight() const { return _windowHeight; }
 
 
 
+void App::_updateBoardRestrictions(){
+    float boardRatio = (float)_game->width() / (float)_game->height();
+    float windowRatio = (float)(_windowWidth-2*TILESIZE) / (float)(_windowHeight-4*TILESIZE);
+    if (windowRatio > boardRatio){ // wide
+        _minBoardx = (_windowWidth/2) - ((_windowHeight-4*TILESIZE) / boardRatio / 2);
+        _maxBoardx = (_windowWidth/2) + ((_windowHeight-4*TILESIZE) / boardRatio / 2);
+        _minBoardy = TILESIZE*3;
+        _maxBoardy = _windowHeight-TILESIZE;
+    } else if (windowRatio < boardRatio){ // tall
+        _minBoardx = TILESIZE;
+        _maxBoardx = _windowWidth-TILESIZE;
+        _minBoardy = ((_windowHeight+TILESIZE)/2) - ((_windowWidth-2*TILESIZE) * boardRatio / 2);
+        _maxBoardy = ((_windowHeight+TILESIZE)/2) + ((_windowWidth-2*TILESIZE) * boardRatio / 2);
+    } else { // square
+        _minBoardx = TILESIZE;
+        _maxBoardx = _windowWidth-TILESIZE;
+        _minBoardy = TILESIZE*3;
+        _maxBoardy = _windowHeight-TILESIZE;
+    }
+    return;
+}
+
+
+
 bool App::_loadBorderSprites(){
 
     // background rectangle
@@ -215,75 +271,76 @@ bool App::_loadBorderSprites(){
     }
     _appspritesheet.setSmooth(false);
 
+    const float scale = (float)TILESIZE / SPRITETILESIZE;
     // top left corner
     _tlc.setTexture(_appspritesheet);
     _tlc.setTextureRect(IntRect(0, 0, SPRITETILESIZE, SPRITETILESIZE));
-    _tlc.setScale(SPRITESCALE, SPRITESCALE);
+    _tlc.setScale(scale, scale);
     // top row
     _t.setTexture(_appspritesheet);
     _t.setTextureRect(IntRect(16, 0, SPRITETILESIZE, SPRITETILESIZE));
-    _t.setScale(SPRITESCALE, SPRITESCALE);
+    _t.setScale(scale, scale);
     // top right corner
     _trc.setTexture(_appspritesheet);
     _trc.setTextureRect(IntRect(32, 0, SPRITETILESIZE, SPRITETILESIZE));
-    _trc.setScale(SPRITESCALE, SPRITESCALE);
+    _trc.setScale(scale, scale);
     // top left side
     _tls.setTexture(_appspritesheet);
     _tls.setTextureRect(IntRect(0, 16, SPRITETILESIZE, SPRITETILESIZE));
-    _tls.setScale(SPRITESCALE, SPRITESCALE);
+    _tls.setScale(scale, scale);
     // top middle row
     _tm.setTexture(_appspritesheet);
     _tm.setTextureRect(IntRect(16, 16, SPRITETILESIZE, SPRITETILESIZE));
-    _tm.setScale(SPRITESCALE, SPRITESCALE);
+    _tm.setScale(scale, scale);
     // top right side
     _trs.setTexture(_appspritesheet);
     _trs.setTextureRect(IntRect(32, 16, SPRITETILESIZE, SPRITETILESIZE));
-    _trs.setScale(SPRITESCALE, SPRITESCALE);
+    _trs.setScale(scale, scale);
     // top left grid corner
     _tlg.setTexture(_appspritesheet);
     _tlg.setTextureRect(IntRect(0, 32, SPRITETILESIZE, SPRITETILESIZE));
-    _tlg.setScale(SPRITESCALE, SPRITESCALE);
+    _tlg.setScale(scale, scale);
     // top grid row
     _tg.setTexture(_appspritesheet);
     _tg.setTextureRect(IntRect(16, 32, SPRITETILESIZE, SPRITETILESIZE));
-    _tg.setScale(SPRITESCALE, SPRITESCALE);
+    _tg.setScale(scale, scale);
     // top right grid corner
     _trg.setTexture(_appspritesheet);
     _trg.setTextureRect(IntRect(32, 32, SPRITETILESIZE, SPRITETILESIZE));
-    _trg.setScale(SPRITESCALE, SPRITESCALE);
+    _trg.setScale(scale, scale);
     // left grid edge
     _lg.setTexture(_appspritesheet);
     _lg.setTextureRect(IntRect(0, 48, SPRITETILESIZE, SPRITETILESIZE));
-    _lg.setScale(SPRITESCALE, SPRITESCALE);
+    _lg.setScale(scale, scale);
     // right grid edge
     _rg.setTexture(_appspritesheet);
     _rg.setTextureRect(IntRect(32, 48, SPRITETILESIZE, SPRITETILESIZE));
-    _rg.setScale(SPRITESCALE, SPRITESCALE);
+    _rg.setScale(scale, scale);
     // bottom left grid corner
     _blg.setTexture(_appspritesheet);
     _blg.setTextureRect(IntRect(0, 64, SPRITETILESIZE, SPRITETILESIZE));
-    _blg.setScale(SPRITESCALE, SPRITESCALE);
+    _blg.setScale(scale, scale);
     // bottom grid row
     _bg.setTexture(_appspritesheet);
     _bg.setTextureRect(IntRect(16, 64, SPRITETILESIZE, SPRITETILESIZE));
-    _bg.setScale(SPRITESCALE, SPRITESCALE);
+    _bg.setScale(scale, scale);
     // bottom right grid corner
     _brg.setTexture(_appspritesheet);
     _brg.setTextureRect(IntRect(32, 64, SPRITETILESIZE, SPRITETILESIZE));
-    _brg.setScale(SPRITESCALE, SPRITESCALE);
+    _brg.setScale(scale, scale);
     
 
     // load happy face
     _happyFaceSprite.setTexture(_appspritesheet);
-    _happyFaceSprite.setScale(SPRITESCALE, SPRITESCALE);
+    _happyFaceSprite.setScale(scale, scale);
     _happyFaceSprite.setTextureRect(IntRect(0, 96, 32, 32));
     // load cool face
     _coolFaceSprite.setTexture(_appspritesheet);
-    _coolFaceSprite.setScale(SPRITESCALE, SPRITESCALE);
+    _coolFaceSprite.setScale(scale, scale);
     _coolFaceSprite.setTextureRect(IntRect(32, 96, 32, 32));
     // load sad face
     _sadFaceSprite.setTexture(_appspritesheet);
-    _sadFaceSprite.setScale(SPRITESCALE, SPRITESCALE);
+    _sadFaceSprite.setScale(scale, scale);
     _sadFaceSprite.setTextureRect(IntRect(64, 96, 32, 32));
 
     // load digits
@@ -298,7 +355,7 @@ bool App::_loadBorderSprites(){
                               IntRect(96, 24, SPRITETILESIZE, SPRITETILESIZE*1.5),
                               IntRect(112, 24, SPRITETILESIZE, SPRITETILESIZE*1.5)};
     Sprite digitSprite(_appspritesheet);
-    digitSprite.setScale(SPRITESCALE, SPRITESCALE);
+    digitSprite.setScale(scale, scale);
     for (int digit = 0; digit < 10; digit++){
         digitSprite.setTextureRect(locations[digit]);
         _digitSprites[0][digit] = digitSprite;

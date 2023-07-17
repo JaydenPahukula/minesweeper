@@ -18,9 +18,9 @@ class Tile {
         void setSprites(sf::Sprite unopened, sf::Sprite flag, sf::Sprite opened, sf::Sprite revealbomb, sf::Sprite xbomb);
 
         // draw the tile
-        void draw(sf::RenderWindow &window) const;
-        void drawLose(sf::RenderWindow &window) const;
-        void drawWin(sf::RenderWindow &window) const;
+        void draw(sf::RenderWindow &window, const sf::RenderStates &states) const;
+        void drawLose(sf::RenderWindow &window, const sf::RenderStates &states) const;
+        void drawWin(sf::RenderWindow &window, const sf::RenderStates &states) const;
 
         // actions
         void reveal();

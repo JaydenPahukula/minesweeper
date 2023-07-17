@@ -82,18 +82,18 @@ void Game::reset(){
 
 
 
-void Game::draw(sf::RenderWindow& window){
+void Game::draw(RenderWindow& window, const sf::RenderStates &states){
     
     // draw each tile
     for (unsigned int y = 0; y < _height; y++){
         for (unsigned int x = 0; x < _width; x++){
             switch (_gameOver){
                 case 0:
-                    _grid[y][x]->draw(window); break;
+                    _grid[y][x]->draw(window, states); break;
                 case 1:
-                    _grid[y][x]->drawLose(window); break;
+                    _grid[y][x]->drawLose(window, states); break;
                 case 2:
-                    _grid[y][x]->drawWin(window); break;
+                    _grid[y][x]->drawWin(window, states); break;
                 default:
                     break;
             }
@@ -279,15 +279,16 @@ bool Game::_loadTileSprites(){
     }
     _tilespritesheet.setSmooth(false);
 
+    const float scale = (float)TILESIZE / SPRITETILESIZE;
     // load sprites
     Sprite unopenedSprite(_tilespritesheet, IntRect(0, 0, 16, 16));
-    unopenedSprite.setScale(SPRITESCALE, SPRITESCALE);
+    unopenedSprite.setScale(scale, scale);
     Sprite flaggedSprite(_tilespritesheet, IntRect(16, 0, 16, 16));
-    flaggedSprite.setScale(SPRITESCALE, SPRITESCALE);
+    flaggedSprite.setScale(scale, scale);
     Sprite revealbombSprite(_tilespritesheet, IntRect(48, 0, 16, 16));
-    revealbombSprite.setScale(SPRITESCALE, SPRITESCALE);
+    revealbombSprite.setScale(scale, scale);
     Sprite xbombSprite(_tilespritesheet, IntRect(16, 16, 16, 16));
-    xbombSprite.setScale(SPRITESCALE, SPRITESCALE);
+    xbombSprite.setScale(scale, scale);
     Sprite openedSprite[] = { Sprite(_tilespritesheet, IntRect(32, 16, 16, 16)),
                               Sprite(_tilespritesheet, IntRect(48, 16, 16, 16)),
                               Sprite(_tilespritesheet, IntRect(0, 32, 16, 16)),
@@ -299,7 +300,7 @@ bool Game::_loadTileSprites(){
                               Sprite(_tilespritesheet, IntRect(32, 48, 16, 16)),
                               Sprite(_tilespritesheet, IntRect(0, 16, 16, 16))   };
     for (unsigned int i = 0; i < 10; i++){
-        openedSprite[i].setScale(SPRITESCALE, SPRITESCALE);
+        openedSprite[i].setScale(scale, scale);
     }
 
     // initialize tiles
@@ -308,8 +309,8 @@ bool Game::_loadTileSprites(){
     for (unsigned int y = 0; y < _height; y++){
         for (unsigned int x = 0; x < _width; x++){
 
-            tilex = TILESIZE*(x+1);
-            tiley = TILESIZE*(y+3);
+            tilex = TILESIZE*x;
+            tiley = TILESIZE*y;
 
             unopenedSprite.setPosition(tilex, tiley);
             flaggedSprite.setPosition(tilex, tiley);
