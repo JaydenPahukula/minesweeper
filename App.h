@@ -22,6 +22,8 @@ class App {
 
         // window resized event
         void resize(const sf::Event::SizeEvent newSize, sf::RenderWindow &window);
+        // zoom event
+        void zoom(const sf::Event::MouseWheelScrollEvent mouse);
 
         // click event
         void click(const sf::Event::MouseButtonEvent mouse);

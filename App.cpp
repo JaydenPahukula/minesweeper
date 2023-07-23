@@ -159,18 +159,6 @@ void App::draw(RenderWindow &window){
     _digitSprites[5][_currTime%10].setPosition(_windowWidth-TILESIZE*(7./4), TILESIZE*(3./4));
     window.draw(_digitSprites[5][_currTime%10]);
 
-    // debug
-    CircleShape x(5, 20);
-    x.setFillColor(Color::Red);
-    x.setPosition(_minBoardx-5, _minBoardy-5);
-    window.draw(x);
-    x.setPosition(_minBoardx-5, _maxBoardy-5);
-    window.draw(x);
-    x.setPosition(_maxBoardx-5, _minBoardy-5);
-    window.draw(x);
-    x.setPosition(_maxBoardx-5, _maxBoardy-5);
-    window.draw(x);
-
     return;
 }
 
@@ -178,11 +166,29 @@ void App::draw(RenderWindow &window){
 
 
 void App::resize(const Event::SizeEvent newSize, RenderWindow &window){
+    // resize window
     _windowWidth = max(_minWindowWidth, newSize.width);
     _windowHeight = max(_minWindowHeight, newSize.height);
     window.setSize(Vector2u(_windowWidth, _windowHeight));
     window.setView(View(Vector2f(_windowWidth/2, _windowHeight/2), Vector2f(_windowWidth, _windowHeight)));
+    // make sure board is still in view
     _updateBoardRestrictions();
+    _boardTileSize = max(_boardTileSize, (float)(_maxBoardx-_minBoardx)/GAMEWIDTH);
+    _boardx = min(_boardx, _minBoardx);
+    _boardx = max((float)_boardx, _maxBoardx-_boardTileSize*GAMEWIDTH);
+    _boardy = min(_boardy, _minBoardy);
+    _boardy = max((float)_boardy, _maxBoardy-_boardTileSize*GAMEHEIGHT);
+    return;
+}
+
+
+void App::zoom(const Event::MouseWheelScrollEvent mouse){
+    // check that mouse is on the board
+    if (mouse.x < (int)_boardx || mouse.x > _boardx + _boardTileSize*GAMEWIDTH) return;
+    if (mouse.y < (int)_boardy || mouse.y > _boardy + _boardTileSize*GAMEHEIGHT) return;
+    // zoom
+    _boardTileSize += mouse.delta * SCROLLSPEED;
+    // make sure board is still in view
     _boardTileSize = max(_boardTileSize, (float)(_maxBoardx-_minBoardx)/GAMEWIDTH);
     _boardx = min(_boardx, _minBoardx);
     _boardx = max((float)_boardx, _maxBoardx-_boardTileSize*GAMEWIDTH);

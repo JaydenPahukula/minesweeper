@@ -19,3 +19,5 @@
 
 #define TILESIZE            32
 #define SPRITETILESIZE      16
+
+#define SCROLLSPEED         4

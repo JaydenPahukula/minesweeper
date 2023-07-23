@@ -33,8 +33,10 @@ int main() {
 
         window.display();
         while( window.pollEvent(event) ) {
-            if (event.type == Event::MouseButtonPressed){ // if mouse clicked
+            if(event.type == Event::MouseButtonPressed){ // if mouse clicked
                 app.click(event.mouseButton);
+            } else if(event.type == Event::MouseWheelScrolled){
+                app.zoom(event.mouseWheelScroll);
             } else if(event.type == Event::Resized){ // if window resized
                 app.resize(event.size, window);
             } else if(event.type == Event::Closed){ // if window closed
