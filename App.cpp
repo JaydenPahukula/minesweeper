@@ -10,6 +10,7 @@ using namespace sf;
 using namespace std;
 
 #include <ctime>
+#include <cmath>
 
 
 
@@ -23,6 +24,8 @@ App::App(){
     _minWindowHeight = (8+4)*TILESIZE;
     _windowWidth = (GAMEWIDTH+2)*TILESIZE;
     _windowHeight = (GAMEHEIGHT+4)*TILESIZE;
+    _holding = false;
+    _panning = false;
 
     // seed random
     srand(time(0));
@@ -164,7 +167,6 @@ void App::draw(RenderWindow &window){
 
 
 
-
 void App::resize(const Event::SizeEvent newSize, RenderWindow &window){
     // resize window
     _windowWidth = max(_minWindowWidth, newSize.width);
@@ -172,14 +174,10 @@ void App::resize(const Event::SizeEvent newSize, RenderWindow &window){
     window.setSize(Vector2u(_windowWidth, _windowHeight));
     window.setView(View(Vector2f(_windowWidth/2, _windowHeight/2), Vector2f(_windowWidth, _windowHeight)));
     // make sure board is still in view
-    _updateBoardRestrictions();
-    _boardTileSize = max(_boardTileSize, (float)(_maxBoardx-_minBoardx)/GAMEWIDTH);
-    _boardx = min(_boardx, _minBoardx);
-    _boardx = max((float)_boardx, _maxBoardx-_boardTileSize*GAMEWIDTH);
-    _boardy = min(_boardy, _minBoardy);
-    _boardy = max((float)_boardy, _maxBoardy-_boardTileSize*GAMEHEIGHT);
+    _keepBoardInView();
     return;
 }
+
 
 
 void App::zoom(const Event::MouseWheelScrollEvent mouse){
@@ -188,50 +186,78 @@ void App::zoom(const Event::MouseWheelScrollEvent mouse){
     if (mouse.y < (int)_boardy || mouse.y > _boardy + _boardTileSize*GAMEHEIGHT) return;
     // zoom
     unsigned int oldsize = _boardTileSize;
-    _boardTileSize += mouse.delta * SCROLLSPEED;
+    _boardTileSize *= 1 + mouse.delta*SCROLLSPEED/100;
     _boardx -= (mouse.x-_boardx)*(_boardTileSize/oldsize - 1);
     _boardy -= (mouse.y-_boardy)*(_boardTileSize/oldsize - 1);
     // make sure board is still in view
-    _boardTileSize = max(_boardTileSize, (float)(_maxBoardx-_minBoardx)/GAMEWIDTH);
-    _boardx = min(_boardx, _minBoardx);
-    _boardx = max((float)_boardx, _maxBoardx-_boardTileSize*GAMEWIDTH);
-    _boardy = min(_boardy, _minBoardy);
-    _boardy = max((float)_boardy, _maxBoardy-_boardTileSize*GAMEHEIGHT);
+    _keepBoardInView();
     return;
 }
 
 
 
+void App::mouseClick(const Event::MouseButtonEvent mouse){
+    // start holding
+    _holding = true;
+    _panx = mouse.x;
+    _pany = mouse.y;
+    return;
+}
 
-void App::click(const Event::MouseButtonEvent mouse){
 
-    // clicked on smiley face
-    if (mouse.button == Mouse::Left && mouse.x > _windowWidth/2.-TILESIZE && mouse.x < _windowWidth/2.+TILESIZE && mouse.y > 16 && mouse.y < 80){
-        _game->reset();
-        _currTime = 0;
-        _timerRunning = false;
-        _updateBoardRestrictions();
-    }
 
-    // clicked on game feild
-    if (!_game->gameOver() && mouse.x > TILESIZE && mouse.x < (int)_windowWidth-TILESIZE && mouse.y > TILESIZE*3 && mouse.y < (int)_windowHeight-TILESIZE){ 
-
-        // start timer if not already started
-        if (!_timerRunning){
-            _startTime = time(0);
-            _timerRunning = true;
+void App::mouseRelease(const Event::MouseButtonEvent mouse){
+    if (!_panning){
+        // clicked on smiley face
+        if (mouse.button == Mouse::Left && mouse.x > _windowWidth/2.-TILESIZE && mouse.x < _windowWidth/2.+TILESIZE && mouse.y > 16 && mouse.y < 80){
+            _game->reset();
+            _resetBoardView();
+            _currTime = 0;
+            _timerRunning = false;
         }
+        // clicked on game feild
+        if (!_game->gameOver() && mouse.x > TILESIZE && mouse.x < (int)_windowWidth-TILESIZE && mouse.y > TILESIZE*3 && mouse.y < (int)_windowHeight-TILESIZE){ 
 
-        // get transformed coords
-        Transform boardTransform = Transform().translate(_boardx, _boardy).scale(_boardTileSize/TILESIZE, _boardTileSize/TILESIZE);
-        Vector2f transformedMouse = boardTransform.getInverse().transformPoint(Vector2f(mouse.x, mouse.y));
-        int tilex = transformedMouse.x / TILESIZE;
-        int tiley = transformedMouse.y / TILESIZE;
+            // start timer if not already started
+            if (!_timerRunning){
+                _startTime = time(0);
+                _timerRunning = true;
+            }
 
-        // click
-        _game->click(mouse, tilex, tiley);
+            // get transformed coords
+            Transform boardTransform = Transform().translate(_boardx, _boardy).scale(_boardTileSize/TILESIZE, _boardTileSize/TILESIZE);
+            Vector2f transformedMouse = boardTransform.getInverse().transformPoint(Vector2f(mouse.x, mouse.y));
+            int tilex = transformedMouse.x / TILESIZE;
+            int tiley = transformedMouse.y / TILESIZE;
+
+            // click
+            _game->click(mouse, tilex, tiley);
+        }
     }
 
+    _holding = false;
+    _panning = false;
+    return;
+}
+
+
+
+void App::mouseMove(const Event::MouseMoveEvent mouse){
+    if (_panning){
+        _boardx += mouse.x - _lastMousex;
+        _boardy += mouse.y - _lastMousey;
+    } else if (_holding && sqrt(pow(mouse.x-_panx, 2) + pow(mouse.y-_pany, 2)) > MINPANDISTANCE){
+        _panning = true;
+        _boardx += mouse.x-_panx;
+        _boardy += mouse.y-_pany;
+    }
+    _boardx = min(_boardx, _minBoardx);
+    _boardx = max((float)_boardx, _maxBoardx-_boardTileSize*GAMEWIDTH);
+    _boardy = min(_boardy, _minBoardy);
+    _boardy = max((float)_boardy, _maxBoardy-_boardTileSize*GAMEHEIGHT);
+
+    _lastMousex = mouse.x;
+    _lastMousey = mouse.y;
     return;
 }
 
@@ -266,6 +292,23 @@ void App::_updateBoardRestrictions(){
     return;
 }
 
+
+void App::_resetBoardView(){
+    _updateBoardRestrictions();
+    _boardTileSize = (_maxBoardx-_minBoardx)/GAMEWIDTH;
+    _boardx = _minBoardx;
+    _boardy = _minBoardy;
+}
+
+
+void App::_keepBoardInView(){
+    _updateBoardRestrictions();
+    _boardTileSize = max(_boardTileSize, (float)(_maxBoardx-_minBoardx)/GAMEWIDTH);
+    _boardx = min(_boardx, _minBoardx);
+    _boardx = max((float)_boardx, _maxBoardx-_boardTileSize*GAMEWIDTH);
+    _boardy = min(_boardy, _minBoardy);
+    _boardy = max((float)_boardy, _maxBoardy-_boardTileSize*GAMEHEIGHT);
+}
 
 
 bool App::_loadBorderSprites(){

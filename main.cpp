@@ -33,13 +33,17 @@ int main() {
 
         window.display();
         while( window.pollEvent(event) ) {
-            if(event.type == Event::MouseButtonPressed){ // if mouse clicked
-                app.click(event.mouseButton);
-            } else if(event.type == Event::MouseWheelScrolled){
+            if(event.type == Event::MouseButtonPressed){            // mouse clicked
+                app.mouseClick(event.mouseButton);
+            } else if(event.type == Event::MouseButtonReleased){    // mouse released
+                app.mouseRelease(event.mouseButton);
+            } else if(event.type == Event::MouseMoved){             // mouse moved
+                app.mouseMove(event.mouseMove);
+            } else if(event.type == Event::MouseWheelScrolled){     // mouse scrolled
                 app.zoom(event.mouseWheelScroll);
-            } else if(event.type == Event::Resized){ // if window resized
+            } else if(event.type == Event::Resized){                // window resized
                 app.resize(event.size, window);
-            } else if(event.type == Event::Closed){ // if window closed
+            } else if(event.type == Event::Closed){                 // window closed
                 window.close();
             }
         }

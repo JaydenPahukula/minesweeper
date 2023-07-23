@@ -26,7 +26,11 @@ class App {
         void zoom(const sf::Event::MouseWheelScrollEvent mouse);
 
         // click event
-        void click(const sf::Event::MouseButtonEvent mouse);
+        void mouseClick(const sf::Event::MouseButtonEvent mouse);
+        // release event
+        void mouseRelease(const sf::Event::MouseButtonEvent mouse);
+        // move event
+        void mouseMove(const sf::Event::MouseMoveEvent mouse);
 
         // getters
         unsigned int gameWidth() const;
@@ -43,9 +47,19 @@ class App {
         unsigned int _windowHeight;
         unsigned int _minWindowWidth;
         unsigned int _minWindowHeight;
+
+        // board
         int _minBoardx, _maxBoardx, _minBoardy, _maxBoardy;
         int _boardx, _boardy;
         float _boardTileSize;
+        void _updateBoardRestrictions();
+        void _resetBoardView();
+        void _keepBoardInView();
+
+        // mouse/panning
+        bool _holding, _panning;
+        unsigned int _panx, _pany;
+        int _lastMousex, _lastMousey;
 
         // timer
         bool _timerRunning;
@@ -57,8 +71,6 @@ class App {
         sf::Sprite _happyFaceSprite, _coolFaceSprite, _sadFaceSprite;
         sf::Sprite _digitSprites[6][10];
         sf::RectangleShape _background;
-
-        void _updateBoardRestrictions();
         bool _loadBorderSprites();
 
 };
