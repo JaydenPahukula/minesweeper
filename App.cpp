@@ -187,7 +187,10 @@ void App::zoom(const Event::MouseWheelScrollEvent mouse){
     if (mouse.x < (int)_boardx || mouse.x > _boardx + _boardTileSize*GAMEWIDTH) return;
     if (mouse.y < (int)_boardy || mouse.y > _boardy + _boardTileSize*GAMEHEIGHT) return;
     // zoom
+    unsigned int oldsize = _boardTileSize;
     _boardTileSize += mouse.delta * SCROLLSPEED;
+    _boardx -= (mouse.x-_boardx)*(_boardTileSize/oldsize - 1);
+    _boardy -= (mouse.y-_boardy)*(_boardTileSize/oldsize - 1);
     // make sure board is still in view
     _boardTileSize = max(_boardTileSize, (float)(_maxBoardx-_minBoardx)/GAMEWIDTH);
     _boardx = min(_boardx, _minBoardx);

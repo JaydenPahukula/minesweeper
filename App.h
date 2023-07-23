@@ -43,8 +43,8 @@ class App {
         unsigned int _windowHeight;
         unsigned int _minWindowWidth;
         unsigned int _minWindowHeight;
-        unsigned int _minBoardx, _maxBoardx, _minBoardy, _maxBoardy;
-        unsigned int _boardx, _boardy;
+        int _minBoardx, _maxBoardx, _minBoardy, _maxBoardy;
+        int _boardx, _boardy;
         float _boardTileSize;
 
         // timer
