@@ -41,6 +41,8 @@ int main() {
                 app.mouseMove(event.mouseMove);
             } else if(event.type == Event::MouseWheelScrolled){     // mouse scrolled
                 app.zoom(event.mouseWheelScroll);
+            } else if(event.type == Event::KeyPressed){             // key pressed
+                app.keyPress(event.key);
             } else if(event.type == Event::Resized){                // window resized
                 app.resize(event.size, window);
             } else if(event.type == Event::Closed){                 // window closed

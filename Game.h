@@ -32,8 +32,6 @@ class Game {
         void click(const sf::Event::MouseButtonEvent mouse, unsigned int x, unsigned int y);
 
         // getters
-        unsigned int width() const;
-        unsigned int height() const;
         unsigned int gameOver() const;
         unsigned int numBombsRemaining() const;
 

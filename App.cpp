@@ -26,6 +26,12 @@ App::App(){
     _windowHeight = (GAMEHEIGHT+4)*TILESIZE;
     _holding = false;
     _panning = false;
+    _currLetter = 0;
+    _menuOpen = false;
+    _menuWidth = 9*TILESIZE;
+    _menuHeight = 450;
+    _testSetting1 = false;
+    _moveMenu();
 
     // seed random
     srand(time(0));
@@ -38,9 +44,9 @@ App::App(){
     _boardy = TILESIZE*3;
     _boardTileSize =  TILESIZE;
 
-    // load sprites
-    if (!_loadBorderSprites()){
-        cerr << endl << "error opening game sprite sheet" << endl;
+    // load assets
+    if (!_loadAssets()){
+        cerr << endl << "error loading assets" << endl;
     }
 
 }
@@ -66,27 +72,27 @@ void App::draw(RenderWindow &window){
     
     // draw border
     // top left corner
-    _tlc.setPosition(0, 0);
-    window.draw(_tlc);
+    _tl.setPosition(0, 0);
+    window.draw(_tl);
     // top row
     for (unsigned int x = TILESIZE; x < _windowWidth-TILESIZE; x += TILESIZE){
         _t.setPosition(x, 0);
         window.draw(_t);
     }
     // top right corner
-    _trc.setPosition(_windowWidth-TILESIZE, 0);
-    window.draw(_trc);
+    _tr.setPosition(_windowWidth-TILESIZE, 0);
+    window.draw(_tr);
     // top left side
-    _tls.setPosition(0, TILESIZE);
-    window.draw(_tls);
+    _l.setPosition(0, TILESIZE);
+    window.draw(_l);
     // top middle row
     for (unsigned int x = TILESIZE; x < _windowWidth-TILESIZE; x += TILESIZE){
-        _tm.setPosition(x, TILESIZE);
-        window.draw(_tm);
+        _m.setPosition(x, TILESIZE);
+        window.draw(_m);
     }
     // top right side
-    _trs.setPosition(_windowWidth-TILESIZE, TILESIZE);
-    window.draw(_trs);
+    _r.setPosition(_windowWidth-TILESIZE, TILESIZE);
+    window.draw(_r);
     // top left grid corner
     _tlg.setPosition(0, TILESIZE*2);
     window.draw(_tlg);
@@ -125,13 +131,13 @@ void App::draw(RenderWindow &window){
     unsigned int isGameOver = _game->gameOver();
     switch (isGameOver){
         case 0:
-            _happyFaceSprite.setPosition(_windowWidth/2.-TILESIZE, 16);
+            _happyFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2);
             window.draw(_happyFaceSprite); break;
         case 1:
-            _sadFaceSprite.setPosition(_windowWidth/2.-TILESIZE, 16);
+            _sadFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2);
             window.draw(_sadFaceSprite); break;
         case 2:
-            _coolFaceSprite.setPosition(_windowWidth/2.-TILESIZE, 16);
+            _coolFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2);
             window.draw(_coolFaceSprite); break;
         default:
             break;
@@ -162,6 +168,52 @@ void App::draw(RenderWindow &window){
     _digitSprites[5][_currTime%10].setPosition(_windowWidth-TILESIZE*(7./4), TILESIZE*(3./4));
     window.draw(_digitSprites[5][_currTime%10]);
 
+    // draw menu
+    if (_menuOpen){
+        _shading.setSize(Vector2f(_windowWidth, _windowHeight));
+        window.draw(_shading);
+        // background
+        for (unsigned int y = 0; y < _menuHeight-TILESIZE; y += TILESIZE){
+            // middle area
+            for (unsigned int x = _menux+TILESIZE; x < _menux+_menuWidth-TILESIZE; x += TILESIZE){
+                _m.setPosition(x, y);
+                window.draw(_m);
+            }
+            // left edge
+            _l.setPosition(_menux, y);
+            window.draw(_l);
+            // right edge
+            _r.setPosition(_menux+_menuWidth-TILESIZE, y);
+            window.draw(_r);
+        }
+        // bottom edge
+        for (unsigned int x = _menux+TILESIZE; x < _menux+_menuWidth-TILESIZE; x += TILESIZE){
+            _b.setPosition(x, _menuHeight-TILESIZE);
+            window.draw(_b);
+        }
+        // corners
+        _bl.setPosition(_menux, _menuHeight-TILESIZE);
+        window.draw(_bl);
+        _br.setPosition(_menux+_menuWidth-TILESIZE, _menuHeight-TILESIZE);
+        window.draw(_br);
+
+        // text
+        window.draw(_menuTitleText);
+        _menuText.setPosition(_menux+TILESIZE/2, 1.7*TILESIZE);
+        _menuText.setString("Test setting");
+        window.draw(_menuText);
+        if (_testSetting1){
+            _checkBoxTrue.setPosition(_menux+TILESIZE*7.5, 1.5*TILESIZE);
+            window.draw(_checkBoxTrue);
+        } else {
+            _checkBoxFalse.setPosition(_menux+TILESIZE*7.5, 1.5*TILESIZE);
+            window.draw(_checkBoxFalse);
+        }
+        _menuText.setPosition(_menux+TILESIZE/2, 2.7*TILESIZE);
+        _menuText.setString("Another setting");
+        window.draw(_menuText);
+    }
+
     return;
 }
 
@@ -175,6 +227,7 @@ void App::resize(const Event::SizeEvent newSize, RenderWindow &window){
     window.setView(View(Vector2f(_windowWidth/2, _windowHeight/2), Vector2f(_windowWidth, _windowHeight)));
     // make sure board is still in view
     _keepBoardInView();
+    _moveMenu();
     return;
 }
 
@@ -197,46 +250,58 @@ void App::zoom(const Event::MouseWheelScrollEvent mouse){
 
 
 void App::mouseClick(const Event::MouseButtonEvent mouse){
-    // start holding
-    _holding = true;
-    _panx = mouse.x;
-    _pany = mouse.y;
-    return;
+    if (_menuOpen){
+        Rect<int> menuBox(_menux, 0, _menuWidth, _menuHeight);
+        if (mouse.button == Mouse::Left && menuBox.contains(Vector2i(mouse.x, mouse.y))){
+            Rect<int> box(_menux+TILESIZE*7.5, 1.8*TILESIZE, TILESIZE, TILESIZE);
+            if (box.contains(Vector2i(mouse.x, mouse.y))){
+                _testSetting1 = !_testSetting1;
+            }
+        } else {
+            _menuOpen = false;
+        }
+    } else {
+        // start holding
+        _holding = true;
+        _panx = mouse.x;
+        _pany = mouse.y;
+        return;
+    }
 }
 
 
 
 void App::mouseRelease(const Event::MouseButtonEvent mouse){
-    if (!_panning){
-        // clicked on smiley face
-        if (mouse.button == Mouse::Left && mouse.x > _windowWidth/2.-TILESIZE && mouse.x < _windowWidth/2.+TILESIZE && mouse.y > 16 && mouse.y < 80){
-            _game->reset();
-            _resetBoardView();
-            _currTime = 0;
-            _timerRunning = false;
-        }
-        // clicked on game feild
-        if (!_game->gameOver() && mouse.x > TILESIZE && mouse.x < (int)_windowWidth-TILESIZE && mouse.y > TILESIZE*3 && mouse.y < (int)_windowHeight-TILESIZE){ 
+    if (_menuOpen){
 
-            // start timer if not already started
-            if (!_timerRunning){
-                _startTime = time(0);
-                _timerRunning = true;
+    } else {
+        if (!_panning){
+            // clicked on smiley face
+            if (mouse.button == Mouse::Left && mouse.x > _windowWidth/2.-TILESIZE && mouse.x < _windowWidth/2.+TILESIZE && mouse.y > 16 && mouse.y < 80){
+                _game->reset();
+                _resetBoardView();
+                _currTime = 0;
+                _timerRunning = false;
             }
-
-            // get transformed coords
-            Transform boardTransform = Transform().translate(_boardx, _boardy).scale(_boardTileSize/TILESIZE, _boardTileSize/TILESIZE);
-            Vector2f transformedMouse = boardTransform.getInverse().transformPoint(Vector2f(mouse.x, mouse.y));
-            int tilex = transformedMouse.x / TILESIZE;
-            int tiley = transformedMouse.y / TILESIZE;
-
-            // click
-            _game->click(mouse, tilex, tiley);
+            // clicked on game feild
+            if (!_game->gameOver() && mouse.x > TILESIZE && mouse.x < (int)_windowWidth-TILESIZE && mouse.y > TILESIZE*3 && mouse.y < (int)_windowHeight-TILESIZE){ 
+                // start timer if not already started
+                if (!_timerRunning){
+                    _startTime = time(0);
+                    _timerRunning = true;
+                }
+                // get transformed coords
+                Transform boardTransform = Transform().translate(_boardx, _boardy).scale(_boardTileSize/TILESIZE, _boardTileSize/TILESIZE);
+                Vector2f transformedMouse = boardTransform.getInverse().transformPoint(Vector2f(mouse.x, mouse.y));
+                int tilex = transformedMouse.x / TILESIZE;
+                int tiley = transformedMouse.y / TILESIZE;
+                // click
+                _game->click(mouse, tilex, tiley);
+            }
         }
+        _holding = false;
+        _panning = false;
     }
-
-    _holding = false;
-    _panning = false;
     return;
 }
 
@@ -263,15 +328,28 @@ void App::mouseMove(const Event::MouseMoveEvent mouse){
 
 
 
-unsigned int App::gameWidth() const { return _game->width(); }
-unsigned int App::gameHeight() const { return _game->height(); }
+void App::keyPress(const Event::KeyEvent key){
+    _currLetter = key.code;
+    if (key.code == 36){
+        _menuOpen = !_menuOpen;
+    }
+    return;
+}
+
+
+
 unsigned int App::windowWidth() const { return _windowWidth; }
 unsigned int App::windowHeight() const { return _windowHeight; }
 
 
+void App::_moveMenu(){
+    _menux = (_windowWidth/2) - (_menuWidth/2);
+    return;
+}
+
 
 void App::_updateBoardRestrictions(){
-    float boardRatio = (float)_game->width() / (float)_game->height();
+    float boardRatio = (float)GAMEWIDTH / (float)GAMEHEIGHT;
     float windowRatio = (float)(_windowWidth-2*TILESIZE) / (float)(_windowHeight-4*TILESIZE);
     if (windowRatio > boardRatio){ // wide
         _minBoardx = (_windowWidth/2) - ((_windowHeight-4*TILESIZE) / boardRatio / 2);
@@ -311,11 +389,26 @@ void App::_keepBoardInView(){
 }
 
 
-bool App::_loadBorderSprites(){
+bool App::_loadAssets(){
+
+    if (!_font.loadFromFile(FONTFILE)){
+        return false;
+    }
+
+    _menuText.setFont(_font);
+    _menuText.setFillColor(Color::Black);
+    _menuText.setCharacterSize(TILESIZE/2);
+    _menuTitleText.setFont(_font);
+    _menuTitleText.setFillColor(Color::Black);
+    _menuTitleText.setCharacterSize(TILESIZE*3/4);
+    _menuTitleText.setPosition(_menux+TILESIZE*3.2, TILESIZE/3);
+    _menuTitleText.setString("MENU:");
 
     // background rectangle
     _background.setFillColor(Color(90, 90, 90));
     _background.setPosition(0, 0);
+    _shading.setFillColor(Color(0, 0, 0, 80));
+    _shading.setPosition(0, 0);
     
     // load texture from sprite sheet
     if(!_appspritesheet.loadFromFile(APPSPRITESHEET)){
@@ -324,64 +417,75 @@ bool App::_loadBorderSprites(){
     _appspritesheet.setSmooth(false);
 
     const float scale = (float)TILESIZE / SPRITETILESIZE;
-    // top left corner
-    _tlc.setTexture(_appspritesheet);
-    _tlc.setTextureRect(IntRect(0, 0, SPRITETILESIZE, SPRITETILESIZE));
-    _tlc.setScale(scale, scale);
-    // top row
+    // top left
+    _tl.setTexture(_appspritesheet);
+    _tl.setTextureRect(IntRect(0, 0, SPRITETILESIZE, SPRITETILESIZE));
+    _tl.setScale(scale, scale);
+    // top
     _t.setTexture(_appspritesheet);
     _t.setTextureRect(IntRect(16, 0, SPRITETILESIZE, SPRITETILESIZE));
     _t.setScale(scale, scale);
-    // top right corner
-    _trc.setTexture(_appspritesheet);
-    _trc.setTextureRect(IntRect(32, 0, SPRITETILESIZE, SPRITETILESIZE));
-    _trc.setScale(scale, scale);
-    // top left side
-    _tls.setTexture(_appspritesheet);
-    _tls.setTextureRect(IntRect(0, 16, SPRITETILESIZE, SPRITETILESIZE));
-    _tls.setScale(scale, scale);
-    // top middle row
-    _tm.setTexture(_appspritesheet);
-    _tm.setTextureRect(IntRect(16, 16, SPRITETILESIZE, SPRITETILESIZE));
-    _tm.setScale(scale, scale);
-    // top right side
-    _trs.setTexture(_appspritesheet);
-    _trs.setTextureRect(IntRect(32, 16, SPRITETILESIZE, SPRITETILESIZE));
-    _trs.setScale(scale, scale);
+    // top right
+    _tr.setTexture(_appspritesheet);
+    _tr.setTextureRect(IntRect(32, 0, SPRITETILESIZE, SPRITETILESIZE));
+    _tr.setScale(scale, scale);
+    // left
+    _l.setTexture(_appspritesheet);
+    _l.setTextureRect(IntRect(0, 16, SPRITETILESIZE, SPRITETILESIZE));
+    _l.setScale(scale, scale);
+    // middle
+    _m.setTexture(_appspritesheet);
+    _m.setTextureRect(IntRect(16, 16, SPRITETILESIZE, SPRITETILESIZE));
+    _m.setScale(scale, scale);
+    // right
+    _r.setTexture(_appspritesheet);
+    _r.setTextureRect(IntRect(32, 16, SPRITETILESIZE, SPRITETILESIZE));
+    _r.setScale(scale, scale);
+    // bottom left
+    _bl.setTexture(_appspritesheet);
+    _bl.setTextureRect(IntRect(0, 32, SPRITETILESIZE, SPRITETILESIZE));
+    _bl.setScale(scale, scale);
+    // bottom middle
+    _b.setTexture(_appspritesheet);
+    _b.setTextureRect(IntRect(16, 32, SPRITETILESIZE, SPRITETILESIZE));
+    _b.setScale(scale, scale);
+    // bottom right
+    _br.setTexture(_appspritesheet);
+    _br.setTextureRect(IntRect(32, 32, SPRITETILESIZE, SPRITETILESIZE));
+    _br.setScale(scale, scale);
     // top left grid corner
     _tlg.setTexture(_appspritesheet);
-    _tlg.setTextureRect(IntRect(0, 32, SPRITETILESIZE, SPRITETILESIZE));
+    _tlg.setTextureRect(IntRect(0, 48, SPRITETILESIZE, SPRITETILESIZE));
     _tlg.setScale(scale, scale);
-    // top grid row
+    // top grid middle
     _tg.setTexture(_appspritesheet);
-    _tg.setTextureRect(IntRect(16, 32, SPRITETILESIZE, SPRITETILESIZE));
+    _tg.setTextureRect(IntRect(16, 48, SPRITETILESIZE, SPRITETILESIZE));
     _tg.setScale(scale, scale);
     // top right grid corner
     _trg.setTexture(_appspritesheet);
-    _trg.setTextureRect(IntRect(32, 32, SPRITETILESIZE, SPRITETILESIZE));
+    _trg.setTextureRect(IntRect(32, 48, SPRITETILESIZE, SPRITETILESIZE));
     _trg.setScale(scale, scale);
-    // left grid edge
+    // left grid side
     _lg.setTexture(_appspritesheet);
-    _lg.setTextureRect(IntRect(0, 48, SPRITETILESIZE, SPRITETILESIZE));
+    _lg.setTextureRect(IntRect(0, 64, SPRITETILESIZE, SPRITETILESIZE));
     _lg.setScale(scale, scale);
-    // right grid edge
+    // right grid side
     _rg.setTexture(_appspritesheet);
-    _rg.setTextureRect(IntRect(32, 48, SPRITETILESIZE, SPRITETILESIZE));
+    _rg.setTextureRect(IntRect(32, 64, SPRITETILESIZE, SPRITETILESIZE));
     _rg.setScale(scale, scale);
     // bottom left grid corner
     _blg.setTexture(_appspritesheet);
-    _blg.setTextureRect(IntRect(0, 64, SPRITETILESIZE, SPRITETILESIZE));
+    _blg.setTextureRect(IntRect(0, 80, SPRITETILESIZE, SPRITETILESIZE));
     _blg.setScale(scale, scale);
-    // bottom grid row
+    // bottom grid middle
     _bg.setTexture(_appspritesheet);
-    _bg.setTextureRect(IntRect(16, 64, SPRITETILESIZE, SPRITETILESIZE));
+    _bg.setTextureRect(IntRect(16, 80, SPRITETILESIZE, SPRITETILESIZE));
     _bg.setScale(scale, scale);
     // bottom right grid corner
     _brg.setTexture(_appspritesheet);
-    _brg.setTextureRect(IntRect(32, 64, SPRITETILESIZE, SPRITETILESIZE));
+    _brg.setTextureRect(IntRect(32, 80, SPRITETILESIZE, SPRITETILESIZE));
     _brg.setScale(scale, scale);
     
-
     // load happy face
     _happyFaceSprite.setTexture(_appspritesheet);
     _happyFaceSprite.setScale(scale, scale);
@@ -396,16 +500,18 @@ bool App::_loadBorderSprites(){
     _sadFaceSprite.setTextureRect(IntRect(64, 96, 32, 32));
 
     // load digits
-    IntRect locations[10] = { IntRect(48, 0, SPRITETILESIZE, SPRITETILESIZE*1.5),
-                              IntRect(64, 0, SPRITETILESIZE, SPRITETILESIZE*1.5),
-                              IntRect(80, 0, SPRITETILESIZE, SPRITETILESIZE*1.5),
-                              IntRect(96, 0, SPRITETILESIZE, SPRITETILESIZE*1.5),
-                              IntRect(112, 0, SPRITETILESIZE, SPRITETILESIZE*1.5),
-                              IntRect(48, 24, SPRITETILESIZE, SPRITETILESIZE*1.5),
-                              IntRect(64, 24, SPRITETILESIZE, SPRITETILESIZE*1.5),
-                              IntRect(80, 24, SPRITETILESIZE, SPRITETILESIZE*1.5),
-                              IntRect(96, 24, SPRITETILESIZE, SPRITETILESIZE*1.5),
-                              IntRect(112, 24, SPRITETILESIZE, SPRITETILESIZE*1.5)};
+    IntRect locations[10] = {
+        IntRect(48, 0, SPRITETILESIZE, SPRITETILESIZE*1.5),
+        IntRect(64, 0, SPRITETILESIZE, SPRITETILESIZE*1.5),
+        IntRect(80, 0, SPRITETILESIZE, SPRITETILESIZE*1.5),
+        IntRect(96, 0, SPRITETILESIZE, SPRITETILESIZE*1.5),
+        IntRect(112, 0, SPRITETILESIZE, SPRITETILESIZE*1.5),
+        IntRect(48, 24, SPRITETILESIZE, SPRITETILESIZE*1.5),
+        IntRect(64, 24, SPRITETILESIZE, SPRITETILESIZE*1.5),
+        IntRect(80, 24, SPRITETILESIZE, SPRITETILESIZE*1.5),
+        IntRect(96, 24, SPRITETILESIZE, SPRITETILESIZE*1.5),
+        IntRect(112, 24, SPRITETILESIZE, SPRITETILESIZE*1.5)
+    };
     Sprite digitSprite(_appspritesheet);
     digitSprite.setScale(scale, scale);
     for (int digit = 0; digit < 10; digit++){
@@ -432,6 +538,13 @@ bool App::_loadBorderSprites(){
         digitSprite.setTextureRect(locations[digit]);
         _digitSprites[5][digit] = digitSprite;
     }
+
+    _checkBoxFalse.setTexture(_appspritesheet);
+    _checkBoxFalse.setTextureRect(IntRect(3*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE));
+    _checkBoxFalse.setScale(scale, scale);
+    _checkBoxTrue.setTexture(_appspritesheet);
+    _checkBoxTrue.setTextureRect(IntRect(4*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE));
+    _checkBoxTrue.setScale(scale, scale);
 
     return true;
 }
