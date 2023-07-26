@@ -20,19 +20,12 @@ class App {
         // draw the app
         void draw(sf::RenderWindow &window);
 
-        // window resized event
+        // event handlers
         void resize(const sf::Event::SizeEvent newSize, sf::RenderWindow &window);
-        // zoom event
         void zoom(const sf::Event::MouseWheelScrollEvent mouse);
-
-        // click event
         void mouseClick(const sf::Event::MouseButtonEvent mouse);
-        // release event
         void mouseRelease(const sf::Event::MouseButtonEvent mouse);
-        // move event
         void mouseMove(const sf::Event::MouseMoveEvent mouse);
-
-        // key pressed event
         void keyPress(const sf::Event::KeyEvent key);
 
         // getters
@@ -40,7 +33,8 @@ class App {
         unsigned int windowHeight() const;
     
     private:
-
+        
+        // game
         Game* _game;
 
         // window
@@ -57,11 +51,25 @@ class App {
         void _resetBoardView();
         void _keepBoardInView();
 
+        // graphics
+        sf::RectangleShape _background;
+        sf::Texture _appspritesheet;
+        sf::Sprite _tl, _t, _tr, _l, _m, _r, _bl, _b, _br, _tlg, _tg, _trg, _lg, _rg, _blg, _bg, _brg;
+        sf::Sprite _happyFaceSprite, _coolFaceSprite, _sadFaceSprite;
+        sf::Sprite _digitSprites[6][10];
+        bool _loadAssets();
+        void _updateSpriteLocations();
+        void _drawBorder(sf::RenderWindow &window);
+
         // menu
         bool _menuOpen;
         unsigned int _menux, _menuWidth, _menuHeight;
-        unsigned int _currLetter;
-        void _moveMenu();
+        sf::Font _font, _boldFont;
+        sf::Text _menuText, _menuTitleText;
+        sf::RectangleShape _menuShading;
+        sf::Sprite _checkBoxFalse, _checkBoxTrue;
+        void _drawMenu(sf::RenderWindow &window);
+        // menu options
         bool _testSetting1;
 
         // mouse/panning
@@ -72,18 +80,6 @@ class App {
         // timer
         bool _timerRunning;
         time_t _startTime, _currTime;
-
-        // graphics
-        sf::Texture _appspritesheet;
-        sf::Sprite _tl, _t, _tr, _l, _m, _r, _bl, _b, _br, _tlg, _tg, _trg, _lg, _rg, _blg, _bg, _brg;
-        sf::Sprite _happyFaceSprite, _coolFaceSprite, _sadFaceSprite;
-        sf::Sprite _digitSprites[6][10];
-        sf::Sprite _checkBoxFalse, _checkBoxTrue;
-        sf::Font _font, _boldFont;
-        sf::Text _menuText, _menuTitleText;
-        sf::RectangleShape _shading;
-        sf::RectangleShape _background;
-        bool _loadAssets();
 
 };
 

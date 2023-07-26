@@ -4,7 +4,6 @@
 #define GAMESPRITESHEET     "assets/gamespritesheet.png"
 #define ICONFILE            "assets/icon.png"
 #define FONTFILE            "assets/pixelmix/pixelmix.ttf"
-#define FONTBOLDFILE        "assets/pixelmix/pixelmix_bold.ttf"
 
 #define GAMEWIDTH           10
 #define GAMEHEIGHT          10

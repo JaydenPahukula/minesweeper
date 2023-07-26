@@ -14,7 +14,6 @@ int main() {
     App app;
     
     // create window
-    //RenderWindow window( VideoMode((app.gameWidth()+2)*TILESIZE, (app.gameHeight()+4)*TILESIZE), "Minesweeper", sf::Style::Default);
     RenderWindow window( VideoMode(app.windowWidth(), app.windowHeight()), "Minesweeper", sf::Style::Default);
     window.setFramerateLimit(60);
 
@@ -32,7 +31,9 @@ int main() {
         app.draw(window);
 
         window.display();
-        while( window.pollEvent(event) ) {
+
+        // handle events
+        while(window.pollEvent(event)) {
             if(event.type == Event::MouseButtonPressed){            // mouse clicked
                 app.mouseClick(event.mouseButton);
             } else if(event.type == Event::MouseButtonReleased){    // mouse released

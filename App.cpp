@@ -15,39 +15,42 @@ using namespace std;
 
 
 App::App(){
+
+    // seed random
+    srand(time(0));
     
-    // initialize values
-    _timerRunning = false;
-    _currTime = 0;
-    _startTime = 0;
+    // initialize window
     _minWindowWidth = (8+2)*TILESIZE;
     _minWindowHeight = (8+4)*TILESIZE;
     _windowWidth = (GAMEWIDTH+2)*TILESIZE;
     _windowHeight = (GAMEHEIGHT+4)*TILESIZE;
-    _holding = false;
-    _panning = false;
-    _currLetter = 0;
-    _menuOpen = false;
-    _menuWidth = 9*TILESIZE;
-    _menuHeight = 450;
-    _testSetting1 = false;
-    _moveMenu();
-
-    // seed random
-    srand(time(0));
-
     // create game
     _game = new Game;
-
+    // initialize board
     _updateBoardRestrictions();
     _boardx = TILESIZE;
     _boardy = TILESIZE*3;
     _boardTileSize =  TILESIZE;
+    // initialize menu
+    _menuWidth = 9*TILESIZE;
+    _menuHeight = 450;
+    _testSetting1 = false;
+    // panning
+    _holding = false;
+    _panning = false;
+    _menuOpen = false;
+    // timer
+    _timerRunning = false;
+    _currTime = 0;
+    _startTime = 0;
 
     // load assets
     if (!_loadAssets()){
         cerr << endl << "error loading assets" << endl;
     }
+
+    // update all dynamic sprite locations
+    _updateSpriteLocations();
 
 }
 
@@ -61,8 +64,14 @@ App::~App(){
 
 void App::draw(RenderWindow &window){
 
+    // update values
+    unsigned int isGameOver = _game->gameOver();
+    unsigned int numBombsRemaining = _game->numBombsRemaining();
+    // update timer
+    if (isGameOver) _timerRunning = false;
+    if (_timerRunning) _currTime = time(0) - _startTime;
+
     // draw background rectangle
-    _background.setSize(Vector2f(_windowWidth, _windowHeight));
     window.draw(_background);
 
     // draw game
@@ -70,148 +79,30 @@ void App::draw(RenderWindow &window){
     states.transform = Transform().translate(_boardx, _boardy).scale(_boardTileSize/TILESIZE, _boardTileSize/TILESIZE);
     _game->draw(window, states);
     
-    // draw border
-    // top left corner
-    _tl.setPosition(0, 0);
-    window.draw(_tl);
-    // top row
-    for (unsigned int x = TILESIZE; x < _windowWidth-TILESIZE; x += TILESIZE){
-        _t.setPosition(x, 0);
-        window.draw(_t);
-    }
-    // top right corner
-    _tr.setPosition(_windowWidth-TILESIZE, 0);
-    window.draw(_tr);
-    // top left side
-    _l.setPosition(0, TILESIZE);
-    window.draw(_l);
-    // top middle row
-    for (unsigned int x = TILESIZE; x < _windowWidth-TILESIZE; x += TILESIZE){
-        _m.setPosition(x, TILESIZE);
-        window.draw(_m);
-    }
-    // top right side
-    _r.setPosition(_windowWidth-TILESIZE, TILESIZE);
-    window.draw(_r);
-    // top left grid corner
-    _tlg.setPosition(0, TILESIZE*2);
-    window.draw(_tlg);
-    // top grid row
-    for (unsigned int x = TILESIZE; x < _windowWidth-TILESIZE; x += TILESIZE){
-        _tg.setPosition(x, TILESIZE*2);
-        window.draw(_tg);
-    }
-    // top right grid corner
-    _trg.setPosition(_windowWidth-TILESIZE, TILESIZE*2);
-    window.draw(_trg);
-    // left grid edge
-    for (unsigned int y = TILESIZE*3; y < _windowHeight-TILESIZE; y += TILESIZE){
-        _lg.setPosition(0, y);
-        window.draw(_lg);
-    }
-    // right grid edge
-    for (unsigned int y = TILESIZE*3; y < _windowHeight-TILESIZE; y += TILESIZE){
-        _rg.setPosition(_windowWidth-TILESIZE, y);
-        window.draw(_rg);
-    }
-    // bottom left grid corner
-    _blg.setPosition(0, _windowHeight-TILESIZE);
-    window.draw(_blg);
-    // bottom grid row
-    for (unsigned int x = TILESIZE; x < _windowWidth-TILESIZE; x += TILESIZE){
-        _bg.setPosition(x, _windowHeight-TILESIZE);
-        window.draw(_bg);
-    }
-    // bottom right grid corner
-    _brg.setPosition(_windowWidth-TILESIZE, _windowHeight-TILESIZE);
-    window.draw(_brg);
-
+    // draw background border
+    _drawBorder(window);
 
     // draw smiley face
-    unsigned int isGameOver = _game->gameOver();
     switch (isGameOver){
-        case 0:
-            _happyFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2);
-            window.draw(_happyFaceSprite); break;
-        case 1:
-            _sadFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2);
-            window.draw(_sadFaceSprite); break;
-        case 2:
-            _coolFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2);
-            window.draw(_coolFaceSprite); break;
-        default:
-            break;
+        case 0: window.draw(_happyFaceSprite); break;
+        case 1: window.draw(_sadFaceSprite); break;
+        case 2: window.draw(_coolFaceSprite); break;
+        default: break;
     }
 
     // draw bomb counter
-    unsigned int numBombsRemaining = _game->numBombsRemaining();
-    _digitSprites[0][(numBombsRemaining/100)%10].setPosition(TILESIZE*(3./4), TILESIZE*(3./4));
     window.draw(_digitSprites[0][(numBombsRemaining/100)%10]);
-    _digitSprites[1][(numBombsRemaining/10)%10].setPosition(TILESIZE*(7./4), TILESIZE*(3./4));
     window.draw(_digitSprites[1][(numBombsRemaining/10)%10]);
-    _digitSprites[2][numBombsRemaining%10].setPosition(TILESIZE*(11./4), TILESIZE*(3./4));
     window.draw(_digitSprites[2][numBombsRemaining%10]);
 
-    // update timer
-    if (isGameOver){
-        _timerRunning = false;
-    }
-    if (_timerRunning){
-        _currTime = time(0) - _startTime;
-    }
-
     // draw timer
-    _digitSprites[3][(_currTime/100)%10].setPosition(_windowWidth-TILESIZE*(15./4), TILESIZE*(3./4));
     window.draw(_digitSprites[3][(_currTime/100)%10]);
-    _digitSprites[4][(_currTime/10)%10].setPosition(_windowWidth-TILESIZE*(11./4), TILESIZE*(3./4));
     window.draw(_digitSprites[4][(_currTime/10)%10]);
-    _digitSprites[5][_currTime%10].setPosition(_windowWidth-TILESIZE*(7./4), TILESIZE*(3./4));
     window.draw(_digitSprites[5][_currTime%10]);
 
     // draw menu
     if (_menuOpen){
-        _shading.setSize(Vector2f(_windowWidth, _windowHeight));
-        window.draw(_shading);
-        // background
-        for (unsigned int y = 0; y < _menuHeight-TILESIZE; y += TILESIZE){
-            // middle area
-            for (unsigned int x = _menux+TILESIZE; x < _menux+_menuWidth-TILESIZE; x += TILESIZE){
-                _m.setPosition(x, y);
-                window.draw(_m);
-            }
-            // left edge
-            _l.setPosition(_menux, y);
-            window.draw(_l);
-            // right edge
-            _r.setPosition(_menux+_menuWidth-TILESIZE, y);
-            window.draw(_r);
-        }
-        // bottom edge
-        for (unsigned int x = _menux+TILESIZE; x < _menux+_menuWidth-TILESIZE; x += TILESIZE){
-            _b.setPosition(x, _menuHeight-TILESIZE);
-            window.draw(_b);
-        }
-        // corners
-        _bl.setPosition(_menux, _menuHeight-TILESIZE);
-        window.draw(_bl);
-        _br.setPosition(_menux+_menuWidth-TILESIZE, _menuHeight-TILESIZE);
-        window.draw(_br);
-
-        // text
-        window.draw(_menuTitleText);
-        _menuText.setPosition(_menux+TILESIZE/2, 1.7*TILESIZE);
-        _menuText.setString("Test setting");
-        window.draw(_menuText);
-        if (_testSetting1){
-            _checkBoxTrue.setPosition(_menux+TILESIZE*7.5, 1.5*TILESIZE);
-            window.draw(_checkBoxTrue);
-        } else {
-            _checkBoxFalse.setPosition(_menux+TILESIZE*7.5, 1.5*TILESIZE);
-            window.draw(_checkBoxFalse);
-        }
-        _menuText.setPosition(_menux+TILESIZE/2, 2.7*TILESIZE);
-        _menuText.setString("Another setting");
-        window.draw(_menuText);
+        _drawMenu(window);
     }
 
     return;
@@ -227,7 +118,8 @@ void App::resize(const Event::SizeEvent newSize, RenderWindow &window){
     window.setView(View(Vector2f(_windowWidth/2, _windowHeight/2), Vector2f(_windowWidth, _windowHeight)));
     // make sure board is still in view
     _keepBoardInView();
-    _moveMenu();
+    // update sprite locations
+    _updateSpriteLocations();
     return;
 }
 
@@ -329,7 +221,6 @@ void App::mouseMove(const Event::MouseMoveEvent mouse){
 
 
 void App::keyPress(const Event::KeyEvent key){
-    _currLetter = key.code;
     if (key.code == 36){
         _menuOpen = !_menuOpen;
     }
@@ -342,8 +233,23 @@ unsigned int App::windowWidth() const { return _windowWidth; }
 unsigned int App::windowHeight() const { return _windowHeight; }
 
 
-void App::_moveMenu(){
+void App::_updateSpriteLocations(){
+    // uodate background
+    _background.setSize(Vector2f(_windowWidth, _windowHeight));
+    // update menu
+    _menuShading.setSize(Vector2f(_windowWidth, _windowHeight));
     _menux = (_windowWidth/2) - (_menuWidth/2);
+    _menuTitleText.setPosition(_menux+TILESIZE*3.2, TILESIZE/3);
+    // update faces
+    _happyFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2);
+    _coolFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2);
+    _sadFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2);
+    // update bomb counter digits
+    for (int digit = 0; digit < 10; digit++){
+        _digitSprites[3][digit].setPosition(_windowWidth-TILESIZE*(15./4), TILESIZE*(3./4));
+        _digitSprites[4][digit].setPosition(_windowWidth-TILESIZE*(11./4), TILESIZE*(3./4));
+        _digitSprites[5][digit].setPosition(_windowWidth-TILESIZE*(7./4), TILESIZE*(3./4));
+    }
     return;
 }
 
@@ -389,12 +295,125 @@ void App::_keepBoardInView(){
 }
 
 
+void App::_drawMenu(RenderWindow &window){
+
+    // shading
+    window.draw(_menuShading);
+
+    // background
+    for (unsigned int y = 0; y < _menuHeight-TILESIZE; y += TILESIZE){
+        // middle area
+        for (unsigned int x = _menux+TILESIZE; x < _menux+_menuWidth-TILESIZE; x += TILESIZE){
+            _m.setPosition(x, y);
+            window.draw(_m);
+        }
+        // left edge
+        _l.setPosition(_menux, y);
+        window.draw(_l);
+        // right edge
+        _r.setPosition(_menux+_menuWidth-TILESIZE, y);
+        window.draw(_r);
+    }
+    // bottom edge
+    for (unsigned int x = _menux+TILESIZE; x < _menux+_menuWidth-TILESIZE; x += TILESIZE){
+        _b.setPosition(x, _menuHeight-TILESIZE);
+        window.draw(_b);
+    }
+    // corners
+    _bl.setPosition(_menux, _menuHeight-TILESIZE);
+    window.draw(_bl);
+    _br.setPosition(_menux+_menuWidth-TILESIZE, _menuHeight-TILESIZE);
+    window.draw(_br);
+
+    // title
+    window.draw(_menuTitleText);
+
+    // option 1
+    _menuText.setPosition(_menux+TILESIZE/2, 1.7*TILESIZE);
+    _menuText.setString("Test setting");
+    window.draw(_menuText);
+    if (_testSetting1){
+        _checkBoxTrue.setPosition(_menux+TILESIZE*7.5, 1.5*TILESIZE);
+        window.draw(_checkBoxTrue);
+    } else {
+        _checkBoxFalse.setPosition(_menux+TILESIZE*7.5, 1.5*TILESIZE);
+        window.draw(_checkBoxFalse);
+    }
+
+    // option 2
+    _menuText.setPosition(_menux+TILESIZE/2, 2.7*TILESIZE);
+    _menuText.setString("Another setting");
+    window.draw(_menuText);
+    return;
+}
+
+
+void App::_drawBorder(RenderWindow &window){
+    // top left corner
+    _tl.setPosition(0, 0);
+    window.draw(_tl);
+    // top row
+    for (unsigned int x = TILESIZE; x < _windowWidth-TILESIZE; x += TILESIZE){
+        _t.setPosition(x, 0);
+        window.draw(_t);
+    }
+    // top right corner
+    _tr.setPosition(_windowWidth-TILESIZE, 0);
+    window.draw(_tr);
+    // top left side
+    _l.setPosition(0, TILESIZE);
+    window.draw(_l);
+    // top middle row
+    for (unsigned int x = TILESIZE; x < _windowWidth-TILESIZE; x += TILESIZE){
+        _m.setPosition(x, TILESIZE);
+        window.draw(_m);
+    }
+    // top right side
+    _r.setPosition(_windowWidth-TILESIZE, TILESIZE);
+    window.draw(_r);
+    // top left grid corner
+    _tlg.setPosition(0, TILESIZE*2);
+    window.draw(_tlg);
+    // top grid row
+    for (unsigned int x = TILESIZE; x < _windowWidth-TILESIZE; x += TILESIZE){
+        _tg.setPosition(x, TILESIZE*2);
+        window.draw(_tg);
+    }
+    // top right grid corner
+    _trg.setPosition(_windowWidth-TILESIZE, TILESIZE*2);
+    window.draw(_trg);
+    // left grid edge
+    for (unsigned int y = TILESIZE*3; y < _windowHeight-TILESIZE; y += TILESIZE){
+        _lg.setPosition(0, y);
+        window.draw(_lg);
+    }
+    // right grid edge
+    for (unsigned int y = TILESIZE*3; y < _windowHeight-TILESIZE; y += TILESIZE){
+        _rg.setPosition(_windowWidth-TILESIZE, y);
+        window.draw(_rg);
+    }
+    // bottom left grid corner
+    _blg.setPosition(0, _windowHeight-TILESIZE);
+    window.draw(_blg);
+    // bottom grid row
+    for (unsigned int x = TILESIZE; x < _windowWidth-TILESIZE; x += TILESIZE){
+        _bg.setPosition(x, _windowHeight-TILESIZE);
+        window.draw(_bg);
+    }
+    // bottom right grid corner
+    _brg.setPosition(_windowWidth-TILESIZE, _windowHeight-TILESIZE);
+    window.draw(_brg);
+}
+
+
 bool App::_loadAssets(){
 
     if (!_font.loadFromFile(FONTFILE)){
         return false;
     }
 
+    _menuShading.setFillColor(Color(0, 0, 0, 80));
+    _menuShading.setPosition(0, 0);
     _menuText.setFont(_font);
     _menuText.setFillColor(Color::Black);
     _menuText.setCharacterSize(TILESIZE/2);
@@ -407,8 +426,7 @@ bool App::_loadAssets(){
     // background rectangle
     _background.setFillColor(Color(90, 90, 90));
     _background.setPosition(0, 0);
-    _shading.setFillColor(Color(0, 0, 0, 80));
-    _shading.setPosition(0, 0);
+    _background.setSize(Vector2f(_windowWidth, _windowHeight));
     
     // load texture from sprite sheet
     if(!_appspritesheet.loadFromFile(APPSPRITESHEET)){
@@ -490,17 +508,20 @@ bool App::_loadAssets(){
     _happyFaceSprite.setTexture(_appspritesheet);
     _happyFaceSprite.setScale(scale, scale);
     _happyFaceSprite.setTextureRect(IntRect(0, 96, 32, 32));
+    _happyFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2);
     // load cool face
     _coolFaceSprite.setTexture(_appspritesheet);
     _coolFaceSprite.setScale(scale, scale);
     _coolFaceSprite.setTextureRect(IntRect(32, 96, 32, 32));
+    _coolFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2);
     // load sad face
     _sadFaceSprite.setTexture(_appspritesheet);
     _sadFaceSprite.setScale(scale, scale);
     _sadFaceSprite.setTextureRect(IntRect(64, 96, 32, 32));
+    _sadFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2);
 
     // load digits
-    IntRect locations[10] = {
+    IntRect spriteLocations[10] = {
         IntRect(48, 0, SPRITETILESIZE, SPRITETILESIZE*1.5),
         IntRect(64, 0, SPRITETILESIZE, SPRITETILESIZE*1.5),
         IntRect(80, 0, SPRITETILESIZE, SPRITETILESIZE*1.5),
@@ -515,27 +536,30 @@ bool App::_loadAssets(){
     Sprite digitSprite(_appspritesheet);
     digitSprite.setScale(scale, scale);
     for (int digit = 0; digit < 10; digit++){
-        digitSprite.setTextureRect(locations[digit]);
+        digitSprite.setTextureRect(spriteLocations[digit]);
+        digitSprite.setPosition(TILESIZE*(3./4), TILESIZE*(3./4));
         _digitSprites[0][digit] = digitSprite;
     }
     for (int digit = 0; digit < 10; digit++){
-        digitSprite.setTextureRect(locations[digit]);
+        digitSprite.setTextureRect(spriteLocations[digit]);
+        digitSprite.setPosition(TILESIZE*(7./4), TILESIZE*(3./4));
         _digitSprites[1][digit] = digitSprite;
     }
     for (int digit = 0; digit < 10; digit++){
-        digitSprite.setTextureRect(locations[digit]);
+        digitSprite.setTextureRect(spriteLocations[digit]);
+        digitSprite.setPosition(TILESIZE*(11./4), TILESIZE*(3./4));
         _digitSprites[2][digit] = digitSprite;
     }
     for (int digit = 0; digit < 10; digit++){
-        digitSprite.setTextureRect(locations[digit]);
+        digitSprite.setTextureRect(spriteLocations[digit]);
         _digitSprites[3][digit] = digitSprite;
     }
     for (int digit = 0; digit < 10; digit++){
-        digitSprite.setTextureRect(locations[digit]);
+        digitSprite.setTextureRect(spriteLocations[digit]);
         _digitSprites[4][digit] = digitSprite;
     }
     for (int digit = 0; digit < 10; digit++){
-        digitSprite.setTextureRect(locations[digit]);
+        digitSprite.setTextureRect(spriteLocations[digit]);
         _digitSprites[5][digit] = digitSprite;
     }
 
