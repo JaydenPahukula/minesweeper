@@ -53,7 +53,6 @@ void Game::reset(){
     _width = GAMEWIDTH;
     _height = GAMEHEIGHT;
     _numBombs = NUMBOMBS;
-    _chordingEnabled = CHORDING;
     _numBombsRemaining = _numBombs;
     _gameOver = 0;
 
@@ -105,7 +104,7 @@ void Game::draw(RenderWindow& window, const sf::RenderStates &states){
 
 
 
-void Game::click(const sf::Event::MouseButtonEvent mouse, unsigned int x, unsigned int y){
+void Game::click(const sf::Event::MouseButtonEvent mouse, unsigned int x, unsigned int y, bool chordingEnabled){
 
     // return if out of bounds
     if (x < 0 || x >= _width || y < 0 || y >= _height) return; 
@@ -117,7 +116,7 @@ void Game::click(const sf::Event::MouseButtonEvent mouse, unsigned int x, unsign
         // update game
         _update();
     // if left clicked, tile already revealed, and chording is enabled
-    } else if (mouse.button == Mouse::Left && _grid[y][x]->isRevealed() && _chordingEnabled){
+    } else if (mouse.button == Mouse::Left && _grid[y][x]->isRevealed() && chordingEnabled){
         // chord
         _chord(x, y);
         // update game

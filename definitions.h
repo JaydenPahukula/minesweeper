@@ -14,14 +14,13 @@
 #define MAXGAMEHEIGHT       64
 #define MINGAMEHEIGHT       8
 
-#define CHORDING            true
-
 #define TILESIZE            48
 #define SPRITETILESIZE      16
 
 #define SCROLLSPEED         16
 
-#define MINPANDISTANCE      40
+#define MINPANDISTANCE      50
 
 // default settings
-#define DEFAULTZOOMENABLED  true
+#define DEFAULTZOOMENABLED  false
+#define DEFAULTCHORDING     true

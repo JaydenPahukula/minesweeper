@@ -19,9 +19,6 @@ class Game {
         // destructor
         ~Game();
 
-        // initialize the game from config file
-        bool init();
-
         // reset the game
         void reset();
 
@@ -29,7 +26,7 @@ class Game {
         void draw(sf::RenderWindow &window, const sf::RenderStates &states);
 
         // click event
-        void click(const sf::Event::MouseButtonEvent mouse, unsigned int x, unsigned int y);
+        void click(const sf::Event::MouseButtonEvent mouse, unsigned int x, unsigned int y, bool chordingEnabled);
 
         // getters
         unsigned int gameOver() const;
@@ -39,7 +36,6 @@ class Game {
 
         // game parameters
         unsigned int _width, _height, _numBombs;
-        bool _chordingEnabled;
 
         // game state
         std::vector<std::vector<Tile*>> _grid;

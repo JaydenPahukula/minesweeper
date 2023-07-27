@@ -71,6 +71,7 @@ class App {
         void _drawMenu(sf::RenderWindow &window);
         // menu options
         bool _zoomEnabled;
+        bool _chordingEnabled;
 
         // mouse/panning
         bool _holding, _panning;

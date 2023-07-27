@@ -36,6 +36,7 @@ App::App(){
     _menuWidth = 9*TILESIZE;
     _menuHeight = 450;
     _zoomEnabled = DEFAULTZOOMENABLED;
+    _chordingEnabled = DEFAULTCHORDING;
     // panning
     _holding = false;
     _panning = false;
@@ -148,10 +149,15 @@ void App::mouseClick(const Event::MouseButtonEvent mouse){
         Rect<int> menuBox(_menux, 0, _menuWidth, _menuHeight);
         if (mouse.button == Mouse::Left && menuBox.contains(Vector2i(mouse.x, mouse.y))){
             // clicked on menu option 1: zooming enabled
-            Rect<int> box(_menux+TILESIZE*7.5, 1.8*TILESIZE, TILESIZE, TILESIZE);
-            if (box.contains(Vector2i(mouse.x, mouse.y))){
+            Rect<int> box1(_menux+TILESIZE*7.5, 1.5*TILESIZE, TILESIZE, TILESIZE);
+            if (box1.contains(Vector2i(mouse.x, mouse.y))){
                 if (_zoomEnabled) _resetBoardView();
                 _zoomEnabled = !_zoomEnabled;
+            }
+            // clicked on menu option 2: chording enabled
+            Rect<int> box2(_menux+TILESIZE*7.5, 2.5*TILESIZE, TILESIZE, TILESIZE);
+            if (box2.contains(Vector2i(mouse.x, mouse.y))){
+                _chordingEnabled = !_chordingEnabled;
             }
         } else {
             // clicked outside menu, so close menu
@@ -191,7 +197,7 @@ void App::mouseRelease(const Event::MouseButtonEvent mouse){
                 int tilex = transformedMouse.x / TILESIZE;
                 int tiley = transformedMouse.y / TILESIZE;
                 // click
-                _game->click(mouse, tilex, tiley);
+                _game->click(mouse, tilex, tiley, _chordingEnabled);
             }
         }
         _holding = false;
@@ -342,10 +348,17 @@ void App::_drawMenu(RenderWindow &window){
         window.draw(_checkBoxFalse);
     }
 
-    // option 2
+    // option 2: chording enabled
     _menuText.setPosition(_menux+TILESIZE/2, 2.7*TILESIZE);
-    _menuText.setString("Another setting");
+    _menuText.setString("Chording enabled");
     window.draw(_menuText);
+    if (_chordingEnabled){
+        _checkBoxTrue.setPosition(_menux+TILESIZE*7.5, 2.5*TILESIZE);
+        window.draw(_checkBoxTrue);
+    } else {
+        _checkBoxFalse.setPosition(_menux+TILESIZE*7.5, 2.5*TILESIZE);
+        window.draw(_checkBoxFalse);
+    }
     return;
 }
 
