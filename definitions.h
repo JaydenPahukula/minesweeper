@@ -22,3 +22,6 @@
 #define SCROLLSPEED         16
 
 #define MINPANDISTANCE      40
+
+// default settings
+#define DEFAULTZOOMENABLED  true

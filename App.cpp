@@ -32,13 +32,13 @@ App::App(){
     _boardy = TILESIZE*3;
     _boardTileSize =  TILESIZE;
     // initialize menu
+    _menuOpen = false;
     _menuWidth = 9*TILESIZE;
     _menuHeight = 450;
-    _testSetting1 = false;
+    _zoomEnabled = DEFAULTZOOMENABLED;
     // panning
     _holding = false;
     _panning = false;
-    _menuOpen = false;
     // timer
     _timerRunning = false;
     _currTime = 0;
@@ -126,16 +126,18 @@ void App::resize(const Event::SizeEvent newSize, RenderWindow &window){
 
 
 void App::zoom(const Event::MouseWheelScrollEvent mouse){
-    // check that mouse is on the board
-    if (mouse.x < (int)_boardx || mouse.x > _boardx + _boardTileSize*GAMEWIDTH) return;
-    if (mouse.y < (int)_boardy || mouse.y > _boardy + _boardTileSize*GAMEHEIGHT) return;
-    // zoom
-    unsigned int oldsize = _boardTileSize;
-    _boardTileSize *= 1 + mouse.delta*SCROLLSPEED/100;
-    _boardx -= (mouse.x-_boardx)*(_boardTileSize/oldsize - 1);
-    _boardy -= (mouse.y-_boardy)*(_boardTileSize/oldsize - 1);
-    // make sure board is still in view
-    _keepBoardInView();
+    if (_zoomEnabled){
+        // check that mouse is on the board
+        if (mouse.x < (int)_boardx || mouse.x > _boardx + _boardTileSize*GAMEWIDTH) return;
+        if (mouse.y < (int)_boardy || mouse.y > _boardy + _boardTileSize*GAMEHEIGHT) return;
+        // zoom
+        unsigned int oldsize = _boardTileSize;
+        _boardTileSize *= 1 + mouse.delta*SCROLLSPEED/100;
+        _boardx -= (mouse.x-_boardx)*(_boardTileSize/oldsize - 1);
+        _boardy -= (mouse.y-_boardy)*(_boardTileSize/oldsize - 1);
+        // make sure board is still in view
+        _keepBoardInView();
+    }
     return;
 }
 
@@ -145,14 +147,17 @@ void App::mouseClick(const Event::MouseButtonEvent mouse){
     if (_menuOpen){
         Rect<int> menuBox(_menux, 0, _menuWidth, _menuHeight);
         if (mouse.button == Mouse::Left && menuBox.contains(Vector2i(mouse.x, mouse.y))){
+            // clicked on menu option 1: zooming enabled
             Rect<int> box(_menux+TILESIZE*7.5, 1.8*TILESIZE, TILESIZE, TILESIZE);
             if (box.contains(Vector2i(mouse.x, mouse.y))){
-                _testSetting1 = !_testSetting1;
+                if (_zoomEnabled) _resetBoardView();
+                _zoomEnabled = !_zoomEnabled;
             }
         } else {
+            // clicked outside menu, so close menu
             _menuOpen = false;
         }
-    } else {
+    } else if (_zoomEnabled) {
         // start holding
         _holding = true;
         _panx = mouse.x;
@@ -164,9 +169,7 @@ void App::mouseClick(const Event::MouseButtonEvent mouse){
 
 
 void App::mouseRelease(const Event::MouseButtonEvent mouse){
-    if (_menuOpen){
-
-    } else {
+    if (!_menuOpen){
         if (!_panning){
             // clicked on smiley face
             if (mouse.button == Mouse::Left && mouse.x > _windowWidth/2.-TILESIZE && mouse.x < _windowWidth/2.+TILESIZE && mouse.y > 16 && mouse.y < 80){
@@ -200,21 +203,20 @@ void App::mouseRelease(const Event::MouseButtonEvent mouse){
 
 
 void App::mouseMove(const Event::MouseMoveEvent mouse){
-    if (_panning){
-        _boardx += mouse.x - _lastMousex;
-        _boardy += mouse.y - _lastMousey;
-    } else if (_holding && sqrt(pow(mouse.x-_panx, 2) + pow(mouse.y-_pany, 2)) > MINPANDISTANCE){
-        _panning = true;
-        _boardx += mouse.x-_panx;
-        _boardy += mouse.y-_pany;
+    if (_zoomEnabled){
+        if (_panning){
+            // move board
+            _boardx += mouse.x - _lastMousex;
+            _boardy += mouse.y - _lastMousey;
+        } else if (_holding && sqrt(pow(mouse.x-_panx, 2) + pow(mouse.y-_pany, 2)) > MINPANDISTANCE){
+            _panning = true;
+            _boardx += mouse.x-_panx;
+            _boardy += mouse.y-_pany;
+        }
+        _keepBoardInView();
+        _lastMousex = mouse.x;
+        _lastMousey = mouse.y;
     }
-    _boardx = min(_boardx, _minBoardx);
-    _boardx = max((float)_boardx, _maxBoardx-_boardTileSize*GAMEWIDTH);
-    _boardy = min(_boardy, _minBoardy);
-    _boardy = max((float)_boardy, _maxBoardy-_boardTileSize*GAMEHEIGHT);
-
-    _lastMousex = mouse.x;
-    _lastMousey = mouse.y;
     return;
 }
 
@@ -328,11 +330,11 @@ void App::_drawMenu(RenderWindow &window){
     // title
     window.draw(_menuTitleText);
 
-    // option 1
+    // option 1: zoom enabled
     _menuText.setPosition(_menux+TILESIZE/2, 1.7*TILESIZE);
-    _menuText.setString("Test setting");
+    _menuText.setString("Zooming enabled");
     window.draw(_menuText);
-    if (_testSetting1){
+    if (_zoomEnabled){
         _checkBoxTrue.setPosition(_menux+TILESIZE*7.5, 1.5*TILESIZE);
         window.draw(_checkBoxTrue);
     } else {

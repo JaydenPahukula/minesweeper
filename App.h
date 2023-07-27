@@ -70,7 +70,7 @@ class App {
         sf::Sprite _checkBoxFalse, _checkBoxTrue;
         void _drawMenu(sf::RenderWindow &window);
         // menu options
-        bool _testSetting1;
+        bool _zoomEnabled;
 
         // mouse/panning
         bool _holding, _panning;
