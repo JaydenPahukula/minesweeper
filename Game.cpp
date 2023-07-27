@@ -170,7 +170,7 @@ void Game::_update(){
     _numBombsRemaining = _numBombs - numFlagged;
 
     // check if game is done
-    if (numUnrevealed == _numBombs){
+    if (!_gameOver && numUnrevealed == _numBombs){
         _playerWins();
     }
 
