@@ -13,15 +13,15 @@ class App {
     public:
 
         // constructor
-        App();
+        App(sf::RenderWindow &window);
         // destructor
         ~App();
 
         // draw the app
-        void draw(sf::RenderWindow &window);
+        void draw();
 
         // event handlers
-        void resize(const sf::Event::SizeEvent newSize, sf::RenderWindow &window);
+        void resize(const sf::Event::SizeEvent newSize);
         void zoom(const sf::Event::MouseWheelScrollEvent mouse);
         void mouseClick(const sf::Event::MouseButtonEvent mouse);
         void mouseRelease(const sf::Event::MouseButtonEvent mouse);
@@ -36,8 +36,12 @@ class App {
         
         // game
         Game* _game;
+        unsigned int _gameWidth;
+        unsigned int _gameHeight;
+        unsigned int _numBombs;
 
         // window
+        sf::RenderWindow* _window;
         unsigned int _windowWidth;
         unsigned int _windowHeight;
         unsigned int _minWindowWidth;
@@ -59,7 +63,7 @@ class App {
         sf::Sprite _digitSprites[6][10];
         bool _loadAssets();
         void _updateSpriteLocations();
-        void _drawBorder(sf::RenderWindow &window);
+        void _drawBorder();
 
         // menu
         bool _menuOpen;
@@ -67,11 +71,14 @@ class App {
         sf::Font _font, _boldFont;
         sf::Text _menuText, _menuTitleText;
         sf::RectangleShape _menuShading;
-        sf::Sprite _checkBoxFalse, _checkBoxTrue;
-        void _drawMenu(sf::RenderWindow &window);
+        sf::Sprite _checkBoxFalse, _checkBoxTrue, _leftArrow, _rightArrow;
+        void _drawMenu();
         // menu options
         bool _zoomEnabled;
         bool _chordingEnabled;
+        unsigned int _nextGameWidth;
+        unsigned int _nextGameHeight;
+        unsigned int _nextNumBombs;
 
         // mouse/panning
         bool _holding, _panning;

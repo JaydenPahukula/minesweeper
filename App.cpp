@@ -14,20 +14,25 @@ using namespace std;
 
 
 
-App::App(){
+App::App(RenderWindow &window){
 
     // seed random
     srand(time(0));
-    
+
+    // initialize game parameters
+    _gameWidth = DEFAULTGAMEWIDTH;
+    _gameHeight = DEFAULTGAMEHEIGHT;
+    _numBombs = DEFAULTNUMBOMBS;
     // initialize window
+    _window = &window;
     _minWindowWidth = (8+2)*TILESIZE;
     _minWindowHeight = (8+4)*TILESIZE;
-    _windowWidth = (GAMEWIDTH+2)*TILESIZE;
-    _windowHeight = (GAMEHEIGHT+4)*TILESIZE;
+    _windowWidth = (_gameWidth+2)*TILESIZE;
+    _windowHeight = (_gameHeight+4)*TILESIZE;
+    _window->setSize(Vector2u(_windowWidth, _windowHeight));
     // create game
-    _game = new Game;
+    _game = new Game(_gameWidth, _gameHeight, _numBombs);
     // initialize board
-    _updateBoardRestrictions();
     _boardx = TILESIZE;
     _boardy = TILESIZE*3;
     _boardTileSize =  TILESIZE;
@@ -37,6 +42,10 @@ App::App(){
     _menuHeight = 450;
     _zoomEnabled = DEFAULTZOOMENABLED;
     _chordingEnabled = DEFAULTCHORDING;
+    _nextGameWidth = DEFAULTGAMEWIDTH;
+    _nextGameHeight = DEFAULTGAMEHEIGHT;
+    _nextNumBombs = DEFAULTNUMBOMBS;
+    
     // panning
     _holding = false;
     _panning = false;
@@ -63,7 +72,7 @@ App::~App(){
 
 
 
-void App::draw(RenderWindow &window){
+void App::draw(){
 
     // update values
     unsigned int isGameOver = _game->gameOver();
@@ -73,37 +82,49 @@ void App::draw(RenderWindow &window){
     if (_timerRunning) _currTime = time(0) - _startTime;
 
     // draw background rectangle
-    window.draw(_background);
+    _window->draw(_background);
 
     // draw game
     RenderStates states;
     states.transform = Transform().translate(_boardx, _boardy).scale(_boardTileSize/TILESIZE, _boardTileSize/TILESIZE);
-    _game->draw(window, states);
+    _game->draw(*_window, states);
     
     // draw background border
-    _drawBorder(window);
+    _drawBorder();
 
     // draw smiley face
     switch (isGameOver){
-        case 0: window.draw(_happyFaceSprite); break;
-        case 1: window.draw(_sadFaceSprite); break;
-        case 2: window.draw(_coolFaceSprite); break;
+        case 0: _window->draw(_happyFaceSprite); break;
+        case 1: _window->draw(_sadFaceSprite); break;
+        case 2: _window->draw(_coolFaceSprite); break;
         default: break;
     }
 
     // draw bomb counter
-    window.draw(_digitSprites[0][(numBombsRemaining/100)%10]);
-    window.draw(_digitSprites[1][(numBombsRemaining/10)%10]);
-    window.draw(_digitSprites[2][numBombsRemaining%10]);
+    _window->draw(_digitSprites[0][(numBombsRemaining/100)%10]);
+    _window->draw(_digitSprites[1][(numBombsRemaining/10)%10]);
+    _window->draw(_digitSprites[2][numBombsRemaining%10]);
 
     // draw timer
-    window.draw(_digitSprites[3][(_currTime/100)%10]);
-    window.draw(_digitSprites[4][(_currTime/10)%10]);
-    window.draw(_digitSprites[5][_currTime%10]);
+    _window->draw(_digitSprites[3][(_currTime/100)%10]);
+    _window->draw(_digitSprites[4][(_currTime/10)%10]);
+    _window->draw(_digitSprites[5][_currTime%10]);
+
+    // debug
+    // CircleShape x(5, 20);
+    // x.setFillColor(Color::Red);
+    // x.setPosition(_minBoardx-5, _minBoardy-5);
+    // _window->draw(x);
+    // x.setPosition(_minBoardx-5, _maxBoardy-5);
+    // _window->draw(x);
+    // x.setPosition(_maxBoardx-5, _minBoardy-5);
+    // _window->draw(x);
+    // x.setPosition(_maxBoardx-5, _maxBoardy-5);
+    // _window->draw(x);
 
     // draw menu
     if (_menuOpen){
-        _drawMenu(window);
+        _drawMenu();
     }
 
     return;
@@ -111,13 +132,14 @@ void App::draw(RenderWindow &window){
 
 
 
-void App::resize(const Event::SizeEvent newSize, RenderWindow &window){
+void App::resize(const Event::SizeEvent newSize){
     // resize window
     _windowWidth = max(_minWindowWidth, newSize.width);
     _windowHeight = max(_minWindowHeight, newSize.height);
-    window.setSize(Vector2u(_windowWidth, _windowHeight));
-    window.setView(View(Vector2f(_windowWidth/2, _windowHeight/2), Vector2f(_windowWidth, _windowHeight)));
+    _window->setSize(Vector2u(_windowWidth, _windowHeight));
+    _window->setView(View(Vector2f(_windowWidth/2, _windowHeight/2), Vector2f(_windowWidth, _windowHeight)));
     // make sure board is still in view
+    if (!_zoomEnabled) _resetBoardView();
     _keepBoardInView();
     // update sprite locations
     _updateSpriteLocations();
@@ -129,8 +151,8 @@ void App::resize(const Event::SizeEvent newSize, RenderWindow &window){
 void App::zoom(const Event::MouseWheelScrollEvent mouse){
     if (_zoomEnabled){
         // check that mouse is on the board
-        if (mouse.x < (int)_boardx || mouse.x > _boardx + _boardTileSize*GAMEWIDTH) return;
-        if (mouse.y < (int)_boardy || mouse.y > _boardy + _boardTileSize*GAMEHEIGHT) return;
+        if (mouse.x < (int)_boardx || mouse.x > _boardx + _boardTileSize*_gameWidth) return;
+        if (mouse.y < (int)_boardy || mouse.y > _boardy + _boardTileSize*_gameHeight) return;
         // zoom
         unsigned int oldsize = _boardTileSize;
         _boardTileSize *= 1 + mouse.delta*SCROLLSPEED/100;
@@ -159,6 +181,33 @@ void App::mouseClick(const Event::MouseButtonEvent mouse){
             if (box2.contains(Vector2i(mouse.x, mouse.y))){
                 _chordingEnabled = !_chordingEnabled;
             }
+            // clicked on menu option 3: game width
+            Rect<int> box3(_menux+TILESIZE*6.2, 3.5*TILESIZE, TILESIZE, TILESIZE);
+            if (box3.contains(Vector2i(mouse.x, mouse.y))){
+                _nextGameWidth = max((int)_nextGameWidth-1, MINGAMEWIDTH);
+            }
+            Rect<int> box4(_menux+TILESIZE*7.7, 3.5*TILESIZE, TILESIZE, TILESIZE);
+            if (box4.contains(Vector2i(mouse.x, mouse.y))){
+                _nextGameWidth = min((int)_nextGameWidth+1, MAXGAMEWIDTH);
+            }
+            // clicked on menu option 4: game height
+            Rect<int> box5(_menux+TILESIZE*6.2, 4.5*TILESIZE, TILESIZE, TILESIZE);
+            if (box5.contains(Vector2i(mouse.x, mouse.y))){
+                _nextGameHeight = max((int)_nextGameHeight-1, MINGAMEWIDTH);
+            }
+            Rect<int> box6(_menux+TILESIZE*7.7, 4.5*TILESIZE, TILESIZE, TILESIZE);
+            if (box6.contains(Vector2i(mouse.x, mouse.y))){
+                _nextGameHeight = min((int)_nextGameHeight+1, MAXGAMEWIDTH);
+            }
+            // clicked on menu option 5: num bombs
+            Rect<int> box7(_menux+TILESIZE*6.2, 5.5*TILESIZE, TILESIZE, TILESIZE);
+            if (box7.contains(Vector2i(mouse.x, mouse.y))){
+                _nextNumBombs = max((int)_nextNumBombs-1, 1);
+            }
+            Rect<int> box8(_menux+TILESIZE*7.7, 5.5*TILESIZE, TILESIZE, TILESIZE);
+            if (box8.contains(Vector2i(mouse.x, mouse.y))){
+                _nextNumBombs = min((int)_nextNumBombs+1, min((int)_nextGameHeight*(int)_nextGameWidth, MAXNUMBOMBS));
+            }
         } else {
             // clicked outside menu, so close menu
             _menuOpen = false;
@@ -178,11 +227,20 @@ void App::mouseRelease(const Event::MouseButtonEvent mouse){
     if (!_menuOpen){
         if (!_panning){
             // clicked on smiley face
-            if (mouse.button == Mouse::Left && mouse.x > _windowWidth/2.-TILESIZE && mouse.x < _windowWidth/2.+TILESIZE && mouse.y > 16 && mouse.y < 80){
-                _game->reset();
-                _resetBoardView();
+            if (mouse.button == Mouse::Left && mouse.x > _windowWidth/2.-TILESIZE && mouse.x < _windowWidth/2.+TILESIZE && mouse.y > TILESIZE/2. && mouse.y < TILESIZE*2.5){
+                // delete old game
+                delete _game;
+                // reset values
+                _gameWidth = _nextGameWidth;
+                _gameHeight = _nextGameHeight;
+                _numBombs = _nextNumBombs;
                 _currTime = 0;
                 _timerRunning = false;
+                // make new game
+                _game = new Game(_gameWidth, _gameHeight, _numBombs);
+                _resetBoardView();
+                // draw new game
+                this->draw();
             }
             // clicked on game feild
             if (!_game->gameOver() && mouse.x > TILESIZE && mouse.x < (int)_windowWidth-TILESIZE && mouse.y > TILESIZE*3 && mouse.y < (int)_windowHeight-TILESIZE){ 
@@ -214,12 +272,13 @@ void App::mouseMove(const Event::MouseMoveEvent mouse){
             // move board
             _boardx += mouse.x - _lastMousex;
             _boardy += mouse.y - _lastMousey;
+            _keepBoardInView();
         } else if (_holding && sqrt(pow(mouse.x-_panx, 2) + pow(mouse.y-_pany, 2)) > MINPANDISTANCE){
             _panning = true;
             _boardx += mouse.x-_panx;
             _boardy += mouse.y-_pany;
+            _keepBoardInView();
         }
-        _keepBoardInView();
         _lastMousex = mouse.x;
         _lastMousey = mouse.y;
     }
@@ -249,9 +308,9 @@ void App::_updateSpriteLocations(){
     _menux = (_windowWidth/2) - (_menuWidth/2);
     _menuTitleText.setPosition(_menux+TILESIZE*3.2, TILESIZE/3);
     // update faces
-    _happyFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2);
-    _coolFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2);
-    _sadFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2);
+    _happyFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2.);
+    _coolFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2.);
+    _sadFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2.);
     // update bomb counter digits
     for (int digit = 0; digit < 10; digit++){
         _digitSprites[3][digit].setPosition(_windowWidth-TILESIZE*(15./4), TILESIZE*(3./4));
@@ -263,18 +322,18 @@ void App::_updateSpriteLocations(){
 
 
 void App::_updateBoardRestrictions(){
-    float boardRatio = (float)GAMEWIDTH / (float)GAMEHEIGHT;
+    float boardRatio = (float)_gameWidth / (float)_gameHeight;
     float windowRatio = (float)(_windowWidth-2*TILESIZE) / (float)(_windowHeight-4*TILESIZE);
     if (windowRatio > boardRatio){ // wide
-        _minBoardx = (_windowWidth/2) - ((_windowHeight-4*TILESIZE) / boardRatio / 2);
-        _maxBoardx = (_windowWidth/2) + ((_windowHeight-4*TILESIZE) / boardRatio / 2);
+        _minBoardx = (_windowWidth/2) - ((_windowHeight-4*TILESIZE) * boardRatio / 2.);
+        _maxBoardx = (_windowWidth/2) + ((_windowHeight-4*TILESIZE) * boardRatio / 2.);
         _minBoardy = TILESIZE*3;
         _maxBoardy = _windowHeight-TILESIZE;
     } else if (windowRatio < boardRatio){ // tall
         _minBoardx = TILESIZE;
         _maxBoardx = _windowWidth-TILESIZE;
-        _minBoardy = ((_windowHeight+TILESIZE)/2) - ((_windowWidth-2*TILESIZE) * boardRatio / 2);
-        _maxBoardy = ((_windowHeight+TILESIZE)/2) + ((_windowWidth-2*TILESIZE) * boardRatio / 2);
+        _minBoardy = ((_windowHeight+TILESIZE)/2) - ((_windowWidth-2*TILESIZE) / boardRatio / 2.);
+        _maxBoardy = ((_windowHeight+TILESIZE)/2) + ((_windowWidth-2*TILESIZE) / boardRatio / 2.);
     } else { // square
         _minBoardx = TILESIZE;
         _maxBoardx = _windowWidth-TILESIZE;
@@ -287,7 +346,7 @@ void App::_updateBoardRestrictions(){
 
 void App::_resetBoardView(){
     _updateBoardRestrictions();
-    _boardTileSize = (_maxBoardx-_minBoardx)/GAMEWIDTH;
+    _boardTileSize = (float)(_maxBoardx-_minBoardx)/(float)_gameWidth;
     _boardx = _minBoardx;
     _boardy = _minBoardy;
 }
@@ -295,129 +354,165 @@ void App::_resetBoardView(){
 
 void App::_keepBoardInView(){
     _updateBoardRestrictions();
-    _boardTileSize = max(_boardTileSize, (float)(_maxBoardx-_minBoardx)/GAMEWIDTH);
+    _boardTileSize = max(_boardTileSize, (float)(_maxBoardx-_minBoardx)/_gameWidth);
     _boardx = min(_boardx, _minBoardx);
-    _boardx = max((float)_boardx, _maxBoardx-_boardTileSize*GAMEWIDTH);
+    _boardx = max((float)_boardx, _maxBoardx-_boardTileSize*_gameWidth);
     _boardy = min(_boardy, _minBoardy);
-    _boardy = max((float)_boardy, _maxBoardy-_boardTileSize*GAMEHEIGHT);
+    _boardy = max((float)_boardy, _maxBoardy-_boardTileSize*_gameHeight);
 }
 
 
-void App::_drawMenu(RenderWindow &window){
+void App::_drawMenu(){
 
     // shading
-    window.draw(_menuShading);
+    _window->draw(_menuShading);
 
     // background
     for (unsigned int y = 0; y < _menuHeight-TILESIZE; y += TILESIZE){
         // middle area
         for (unsigned int x = _menux+TILESIZE; x < _menux+_menuWidth-TILESIZE; x += TILESIZE){
             _m.setPosition(x, y);
-            window.draw(_m);
+            _window->draw(_m);
         }
         // left edge
         _l.setPosition(_menux, y);
-        window.draw(_l);
+        _window->draw(_l);
         // right edge
         _r.setPosition(_menux+_menuWidth-TILESIZE, y);
-        window.draw(_r);
+        _window->draw(_r);
     }
     // bottom edge
     for (unsigned int x = _menux+TILESIZE; x < _menux+_menuWidth-TILESIZE; x += TILESIZE){
         _b.setPosition(x, _menuHeight-TILESIZE);
-        window.draw(_b);
+        _window->draw(_b);
     }
     // corners
     _bl.setPosition(_menux, _menuHeight-TILESIZE);
-    window.draw(_bl);
+    _window->draw(_bl);
     _br.setPosition(_menux+_menuWidth-TILESIZE, _menuHeight-TILESIZE);
-    window.draw(_br);
+    _window->draw(_br);
 
     // title
-    window.draw(_menuTitleText);
+    _window->draw(_menuTitleText);
 
     // option 1: zoom enabled
     _menuText.setPosition(_menux+TILESIZE/2, 1.7*TILESIZE);
     _menuText.setString("Zooming enabled");
-    window.draw(_menuText);
+    _window->draw(_menuText);
     if (_zoomEnabled){
         _checkBoxTrue.setPosition(_menux+TILESIZE*7.5, 1.5*TILESIZE);
-        window.draw(_checkBoxTrue);
+        _window->draw(_checkBoxTrue);
     } else {
         _checkBoxFalse.setPosition(_menux+TILESIZE*7.5, 1.5*TILESIZE);
-        window.draw(_checkBoxFalse);
+        _window->draw(_checkBoxFalse);
     }
 
     // option 2: chording enabled
     _menuText.setPosition(_menux+TILESIZE/2, 2.7*TILESIZE);
     _menuText.setString("Chording enabled");
-    window.draw(_menuText);
+    _window->draw(_menuText);
     if (_chordingEnabled){
         _checkBoxTrue.setPosition(_menux+TILESIZE*7.5, 2.5*TILESIZE);
-        window.draw(_checkBoxTrue);
+        _window->draw(_checkBoxTrue);
     } else {
         _checkBoxFalse.setPosition(_menux+TILESIZE*7.5, 2.5*TILESIZE);
-        window.draw(_checkBoxFalse);
+        _window->draw(_checkBoxFalse);
     }
+
+    // option 3: game width
+    _menuText.setPosition(_menux+TILESIZE/2, 3.7*TILESIZE);
+    _menuText.setString("Game width");
+    _window->draw(_menuText);
+    _menuText.setString(to_string(_nextGameWidth));
+    _menuText.setPosition(_menux+TILESIZE*7.33-_menuText.getGlobalBounds().width/2., 3.7*TILESIZE);
+    _window->draw(_menuText);
+    _leftArrow.setPosition(_menux+TILESIZE*6, 3.5*TILESIZE);
+    _window->draw(_leftArrow);
+    _rightArrow.setPosition(_menux+TILESIZE*7.7, 3.5*TILESIZE);
+    _window->draw(_rightArrow);
+
+    // option 4: game height
+    _menuText.setPosition(_menux+TILESIZE/2, 4.7*TILESIZE);
+    _menuText.setString("Game height");
+    _window->draw(_menuText);
+    _menuText.setString(to_string(_nextGameHeight));
+    _menuText.setPosition(_menux+TILESIZE*7.33-_menuText.getLocalBounds().width/2., 4.7*TILESIZE);
+    _window->draw(_menuText);
+    _leftArrow.setPosition(_menux+TILESIZE*6, 4.5*TILESIZE);
+    _window->draw(_leftArrow);
+    _rightArrow.setPosition(_menux+TILESIZE*7.7, 4.5*TILESIZE);
+    _window->draw(_rightArrow);
+
+    // option 5: number of bombs
+    _menuText.setPosition(_menux+TILESIZE/2, 5.7*TILESIZE);
+    _menuText.setString("Number of bombs");
+    _window->draw(_menuText);
+    _menuText.setString(to_string(_nextNumBombs));
+    _menuText.setPosition(_menux+TILESIZE*7.33-_menuText.getLocalBounds().width/2., 5.7*TILESIZE);
+    _window->draw(_menuText);
+    _leftArrow.setPosition(_menux+TILESIZE*6, 5.5*TILESIZE);
+    _window->draw(_leftArrow);
+    _rightArrow.setPosition(_menux+TILESIZE*7.7, 5.5*TILESIZE);
+    _window->draw(_rightArrow);
     return;
 }
 
 
-void App::_drawBorder(RenderWindow &window){
+void App::_drawBorder(){
     // top left corner
     _tl.setPosition(0, 0);
-    window.draw(_tl);
+    _window->draw(_tl);
     // top row
     for (unsigned int x = TILESIZE; x < _windowWidth-TILESIZE; x += TILESIZE){
         _t.setPosition(x, 0);
-        window.draw(_t);
+        _window->draw(_t);
     }
     // top right corner
     _tr.setPosition(_windowWidth-TILESIZE, 0);
-    window.draw(_tr);
+    _window->draw(_tr);
     // top left side
     _l.setPosition(0, TILESIZE);
-    window.draw(_l);
+    _window->draw(_l);
     // top middle row
     for (unsigned int x = TILESIZE; x < _windowWidth-TILESIZE; x += TILESIZE){
         _m.setPosition(x, TILESIZE);
-        window.draw(_m);
+        _window->draw(_m);
     }
     // top right side
     _r.setPosition(_windowWidth-TILESIZE, TILESIZE);
-    window.draw(_r);
+    _window->draw(_r);
     // top left grid corner
     _tlg.setPosition(0, TILESIZE*2);
-    window.draw(_tlg);
+    _window->draw(_tlg);
     // top grid row
     for (unsigned int x = TILESIZE; x < _windowWidth-TILESIZE; x += TILESIZE){
         _tg.setPosition(x, TILESIZE*2);
-        window.draw(_tg);
+        _window->draw(_tg);
     }
     // top right grid corner
     _trg.setPosition(_windowWidth-TILESIZE, TILESIZE*2);
-    window.draw(_trg);
+    _window->draw(_trg);
     // left grid edge
     for (unsigned int y = TILESIZE*3; y < _windowHeight-TILESIZE; y += TILESIZE){
         _lg.setPosition(0, y);
-        window.draw(_lg);
+        _window->draw(_lg);
     }
     // right grid edge
     for (unsigned int y = TILESIZE*3; y < _windowHeight-TILESIZE; y += TILESIZE){
         _rg.setPosition(_windowWidth-TILESIZE, y);
-        window.draw(_rg);
+        _window->draw(_rg);
     }
     // bottom left grid corner
     _blg.setPosition(0, _windowHeight-TILESIZE);
-    window.draw(_blg);
+    _window->draw(_blg);
     // bottom grid row
     for (unsigned int x = TILESIZE; x < _windowWidth-TILESIZE; x += TILESIZE){
         _bg.setPosition(x, _windowHeight-TILESIZE);
-        window.draw(_bg);
+        _window->draw(_bg);
     }
     // bottom right grid corner
     _brg.setPosition(_windowWidth-TILESIZE, _windowHeight-TILESIZE);
-    window.draw(_brg);
+    _window->draw(_brg);
 }
 
 
@@ -578,12 +673,21 @@ bool App::_loadAssets(){
         _digitSprites[5][digit] = digitSprite;
     }
 
+    // check box
     _checkBoxFalse.setTexture(_appspritesheet);
     _checkBoxFalse.setTextureRect(IntRect(3*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE));
     _checkBoxFalse.setScale(scale, scale);
     _checkBoxTrue.setTexture(_appspritesheet);
     _checkBoxTrue.setTextureRect(IntRect(4*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE));
     _checkBoxTrue.setScale(scale, scale);
+
+    // left and right arrows
+    _leftArrow.setTexture(_appspritesheet);
+    _leftArrow.setTextureRect(IntRect(5*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE));
+    _leftArrow.setScale(scale, scale);
+    _rightArrow.setTexture(_appspritesheet);
+    _rightArrow.setTextureRect(IntRect(6*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE));
+    _rightArrow.setScale(scale, scale);
 
     return true;
 }

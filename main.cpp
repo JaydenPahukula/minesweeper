@@ -10,11 +10,8 @@ using namespace std;
 
 int main() {
     
-    // create game
-    App app;
-    
     // create window
-    RenderWindow window( VideoMode(app.windowWidth(), app.windowHeight()), "Minesweeper", sf::Style::Default);
+    RenderWindow window(VideoMode(10, 10), "Minesweeper", sf::Style::Default);
     window.setFramerateLimit(60);
 
     // set window icon
@@ -22,13 +19,16 @@ int main() {
     icon.loadFromFile(ICONFILE);
     window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
 
+    // create game
+    App app(window);
+
     // draw loop
     Event event;
     while( window.isOpen() ) {
         window.clear();
 
         // draw game
-        app.draw(window);
+        app.draw();
 
         window.display();
 
@@ -45,7 +45,7 @@ int main() {
             } else if(event.type == Event::KeyPressed){             // key pressed
                 app.keyPress(event.key);
             } else if(event.type == Event::Resized){                // window resized
-                app.resize(event.size, window);
+                app.resize(event.size);
             } else if(event.type == Event::Closed){                 // window closed
                 window.close();
             }

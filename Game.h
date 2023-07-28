@@ -15,12 +15,9 @@ class Game {
     public:
     
         // constructor
-        Game();
+        Game(unsigned int width, unsigned int height, unsigned int numBombs, int seed = 0);
         // destructor
         ~Game();
-
-        // reset the game
-        void reset();
 
         // draw the game
         void draw(sf::RenderWindow &window, const sf::RenderStates &states);

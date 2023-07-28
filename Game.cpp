@@ -12,14 +12,16 @@ using namespace sf;
 using namespace std;
 
 #include <cstdlib>
+#include <ctime>
 
 
 
-Game::Game(){
+Game::Game(unsigned int width, unsigned int height, unsigned int numBombs, int seed){
 
     // initialize tile grid
-    _width = GAMEWIDTH;
-    _height = GAMEHEIGHT;
+    _gameOver = 0;
+    _width = width;
+    _height = height;
     _grid = vector<vector<Tile*>>(_height, vector<Tile*>(_width, nullptr));
     for (unsigned int y = 0; y < _height; y++){
         for (unsigned int x = 0; x < _width; x++){
@@ -27,9 +29,26 @@ Game::Game(){
         }
     }
 
-    // reset values
-    this->reset();
+    // seed random
+    if (seed == 0){
+        srand(time(0));
+    } else {
+        srand(seed);
+    }
 
+    // make bombs
+    _numBombs = numBombs;
+    _numBombsRemaining = _numBombs;
+    for (unsigned int i = 0; i < _numBombs; i++){
+        if (!_grid[rand()%_height][rand()%_width]->init(9)){
+            i--;
+        }
+    }
+
+    // init tiles
+    if (!_loadTileSprites()){
+        cerr << endl << "error opening tile sprite sheet" << endl;
+    }
 }
 
 
@@ -43,41 +62,6 @@ Game::~Game(){
         }
     }
 }
-
-
-
-
-void Game::reset(){
-
-    // reset values
-    _width = GAMEWIDTH;
-    _height = GAMEHEIGHT;
-    _numBombs = NUMBOMBS;
-    _numBombsRemaining = _numBombs;
-    _gameOver = 0;
-
-    // reset each tile
-    for (unsigned int y = 0; y < _height; y++){
-        for (unsigned int x = 0; x < _width; x++){
-            _grid[y][x]->reset();
-        }
-    }
-
-    // make bombs
-    for (unsigned int i = 0; i < _numBombs; i++){
-        if (!_grid[rand()%_height][rand()%_width]->init(9)){
-            i--;
-        }
-    }
-
-    // init tiles
-    if (!_loadTileSprites()){
-        cerr << endl << "error opening tile sprite sheet" << endl;
-    }
-
-    return;
-}
-
 
 
 
@@ -269,7 +253,6 @@ void Game::_chord(unsigned int x, unsigned int y){
 
 
 bool Game::_loadTileSprites(){
-
     // load texture from sprite sheet
     if (!_tilespritesheet.loadFromFile(GAMESPRITESHEET)){
         return false;
