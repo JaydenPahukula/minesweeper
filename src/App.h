@@ -71,14 +71,13 @@ class App {
         sf::Font _font, _boldFont;
         sf::Text _menuText, _menuTitleText;
         sf::RectangleShape _menuShading;
-        sf::Sprite _checkBoxFalse, _checkBoxTrue, _leftArrow, _rightArrow;
         void _drawMenu();
         // menu options
-        bool _zoomEnabled;
-        bool _chordingEnabled;
-        unsigned int _nextGameWidth;
-        unsigned int _nextGameHeight;
-        unsigned int _nextNumBombs;
+        bool _zoomEnabled; sf::Sprite _zoomEnabledCheckboxTrue; sf::Sprite _zoomEnabledCheckboxFalse;
+        bool _chordingEnabled; sf::Sprite _chordingEnabledCheckboxTrue; sf::Sprite _chordingEnabledCheckboxFalse;
+        unsigned int _nextGameWidth; sf::Sprite _gameWidthDownArrow; sf::Sprite _gameWidthUpArrow;
+        unsigned int _nextGameHeight; sf::Sprite _gameHeightDownArrow; sf::Sprite _gameHeightUpArrow;
+        unsigned int _nextNumBombs; sf::Sprite _numBombsDownArrow; sf::Sprite _numBombsUpArrow;
 
         // mouse/panning
         bool _holding, _panning;

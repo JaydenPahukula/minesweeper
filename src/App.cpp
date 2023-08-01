@@ -37,6 +37,7 @@ App::App(RenderWindow &window){
     _boardy = TILESIZE*3;
     _boardTileSize =  TILESIZE;
     // initialize menu
+    _menux = (_windowWidth/2) - (_menuWidth/2);
     _menuOpen = false;
     _menuWidth = 9*TILESIZE;
     _menuHeight = 450;
@@ -169,43 +170,35 @@ void App::zoom(const Event::MouseWheelScrollEvent mouse){
 void App::mouseClick(const Event::MouseButtonEvent mouse){
     if (_menuOpen){
         Rect<int> menuBox(_menux, 0, _menuWidth, _menuHeight);
-        if (mouse.button == Mouse::Left && menuBox.contains(Vector2i(mouse.x, mouse.y))){
+        if (mouse.button == Mouse::Left && menuBox.contains(mouse.x, mouse.y)){
             // clicked on menu option 1: zooming enabled
-            Rect<int> box1(_menux+TILESIZE*7.5, 1.5*TILESIZE, TILESIZE, TILESIZE);
-            if (box1.contains(Vector2i(mouse.x, mouse.y))){
+            if (_zoomEnabledCheckboxTrue.getGlobalBounds().contains(mouse.x, mouse.y)){
                 if (_zoomEnabled) _resetBoardView();
                 _zoomEnabled = !_zoomEnabled;
             }
             // clicked on menu option 2: chording enabled
-            Rect<int> box2(_menux+TILESIZE*7.5, 2.5*TILESIZE, TILESIZE, TILESIZE);
-            if (box2.contains(Vector2i(mouse.x, mouse.y))){
+            if (_chordingEnabledCheckboxTrue.getGlobalBounds().contains(mouse.x, mouse.y)){
                 _chordingEnabled = !_chordingEnabled;
             }
             // clicked on menu option 3: game width
-            Rect<int> box3(_menux+TILESIZE*6.2, 3.5*TILESIZE, TILESIZE, TILESIZE);
-            if (box3.contains(Vector2i(mouse.x, mouse.y))){
+            if (_gameWidthDownArrow.getGlobalBounds().contains(mouse.x, mouse.y)){
                 _nextGameWidth = max((int)_nextGameWidth-1, MINGAMEWIDTH);
             }
-            Rect<int> box4(_menux+TILESIZE*7.7, 3.5*TILESIZE, TILESIZE, TILESIZE);
-            if (box4.contains(Vector2i(mouse.x, mouse.y))){
+            if (_gameWidthUpArrow.getGlobalBounds().contains(mouse.x, mouse.y)){
                 _nextGameWidth = min((int)_nextGameWidth+1, MAXGAMEWIDTH);
             }
             // clicked on menu option 4: game height
-            Rect<int> box5(_menux+TILESIZE*6.2, 4.5*TILESIZE, TILESIZE, TILESIZE);
-            if (box5.contains(Vector2i(mouse.x, mouse.y))){
+            if (_gameHeightDownArrow.getGlobalBounds().contains(mouse.x, mouse.y)){
                 _nextGameHeight = max((int)_nextGameHeight-1, MINGAMEWIDTH);
             }
-            Rect<int> box6(_menux+TILESIZE*7.7, 4.5*TILESIZE, TILESIZE, TILESIZE);
-            if (box6.contains(Vector2i(mouse.x, mouse.y))){
+            if (_gameHeightUpArrow.getGlobalBounds().contains(mouse.x, mouse.y)){
                 _nextGameHeight = min((int)_nextGameHeight+1, MAXGAMEWIDTH);
             }
             // clicked on menu option 5: num bombs
-            Rect<int> box7(_menux+TILESIZE*6.2, 5.5*TILESIZE, TILESIZE, TILESIZE);
-            if (box7.contains(Vector2i(mouse.x, mouse.y))){
+            if (_numBombsDownArrow.getGlobalBounds().contains(mouse.x, mouse.y)){
                 _nextNumBombs = max((int)_nextNumBombs-1, 1);
             }
-            Rect<int> box8(_menux+TILESIZE*7.7, 5.5*TILESIZE, TILESIZE, TILESIZE);
-            if (box8.contains(Vector2i(mouse.x, mouse.y))){
+            if (_numBombsUpArrow.getGlobalBounds().contains(mouse.x, mouse.y)){
                 _nextNumBombs = min((int)_nextNumBombs+1, min((int)_nextGameHeight*(int)_nextGameWidth, MAXNUMBOMBS));
             }
         } else {
@@ -227,7 +220,7 @@ void App::mouseRelease(const Event::MouseButtonEvent mouse){
     if (!_menuOpen){
         if (!_panning){
             // clicked on smiley face
-            if (mouse.button == Mouse::Left && mouse.x > _windowWidth/2.-TILESIZE && mouse.x < _windowWidth/2.+TILESIZE && mouse.y > TILESIZE/2. && mouse.y < TILESIZE*2.5){
+            if (mouse.button == Mouse::Left && _happyFaceSprite.getGlobalBounds().contains(mouse.x, mouse.y)){
                 // delete old game
                 delete _game;
                 // reset values
@@ -243,7 +236,8 @@ void App::mouseRelease(const Event::MouseButtonEvent mouse){
                 this->draw();
             }
             // clicked on game feild
-            if (!_game->gameOver() && mouse.x > TILESIZE && mouse.x < (int)_windowWidth-TILESIZE && mouse.y > TILESIZE*3 && mouse.y < (int)_windowHeight-TILESIZE){ 
+            IntRect gameFeild(TILESIZE, 3*TILESIZE, _windowWidth-2*TILESIZE, _windowHeight-4*TILESIZE); 
+            if (!_game->gameOver() && gameFeild.contains(mouse.x, mouse.y)){ 
                 // start timer if not already started
                 if (!_timerRunning){
                     _startTime = time(0);
@@ -317,6 +311,17 @@ void App::_updateSpriteLocations(){
         _digitSprites[4][digit].setPosition(_windowWidth-TILESIZE*(11./4), TILESIZE*(3./4));
         _digitSprites[5][digit].setPosition(_windowWidth-TILESIZE*(7./4), TILESIZE*(3./4));
     }
+    // menu options
+    _zoomEnabledCheckboxFalse.setPosition(_menux+TILESIZE*7.5, 1.5*TILESIZE);
+    _zoomEnabledCheckboxTrue.setPosition(_menux+TILESIZE*7.5, 1.5*TILESIZE);
+    _chordingEnabledCheckboxFalse.setPosition(_menux+TILESIZE*7.5, 2.5*TILESIZE);
+    _chordingEnabledCheckboxTrue.setPosition(_menux+TILESIZE*7.5, 2.5*TILESIZE);
+    _gameWidthDownArrow.setPosition(_menux+TILESIZE*6, 3.5*TILESIZE);
+    _gameWidthUpArrow.setPosition(_menux+TILESIZE*7.7, 3.5*TILESIZE);
+    _gameHeightDownArrow.setPosition(_menux+TILESIZE*6, 4.5*TILESIZE);
+    _gameHeightUpArrow.setPosition(_menux+TILESIZE*7.7, 4.5*TILESIZE);
+    _numBombsDownArrow.setPosition(_menux+TILESIZE*6, 5.5*TILESIZE);
+    _numBombsUpArrow.setPosition(_menux+TILESIZE*7.7, 5.5*TILESIZE);
     return;
 }
 
@@ -399,12 +404,10 @@ void App::_drawMenu(){
     _menuText.setPosition(_menux+TILESIZE/2, 1.7*TILESIZE);
     _menuText.setString("Zooming enabled");
     _window->draw(_menuText);
-    if (_zoomEnabled){
-        _checkBoxTrue.setPosition(_menux+TILESIZE*7.5, 1.5*TILESIZE);
-        _window->draw(_checkBoxTrue);
-    } else {
-        _checkBoxFalse.setPosition(_menux+TILESIZE*7.5, 1.5*TILESIZE);
-        _window->draw(_checkBoxFalse);
+    if (_zoomEnabled){ 
+        _window->draw(_zoomEnabledCheckboxTrue);
+    } else {           
+        _window->draw(_zoomEnabledCheckboxFalse);
     }
 
     // option 2: chording enabled
@@ -412,11 +415,9 @@ void App::_drawMenu(){
     _menuText.setString("Chording enabled");
     _window->draw(_menuText);
     if (_chordingEnabled){
-        _checkBoxTrue.setPosition(_menux+TILESIZE*7.5, 2.5*TILESIZE);
-        _window->draw(_checkBoxTrue);
+        _window->draw(_chordingEnabledCheckboxTrue);
     } else {
-        _checkBoxFalse.setPosition(_menux+TILESIZE*7.5, 2.5*TILESIZE);
-        _window->draw(_checkBoxFalse);
+        _window->draw(_chordingEnabledCheckboxFalse);
     }
 
     // option 3: game width
@@ -426,10 +427,8 @@ void App::_drawMenu(){
     _menuText.setString(to_string(_nextGameWidth));
     _menuText.setPosition(_menux+TILESIZE*7.33-_menuText.getGlobalBounds().width/2., 3.7*TILESIZE);
     _window->draw(_menuText);
-    _leftArrow.setPosition(_menux+TILESIZE*6, 3.5*TILESIZE);
-    _window->draw(_leftArrow);
-    _rightArrow.setPosition(_menux+TILESIZE*7.7, 3.5*TILESIZE);
-    _window->draw(_rightArrow);
+    _window->draw(_gameWidthDownArrow);
+    _window->draw(_gameWidthUpArrow);
 
     // option 4: game height
     _menuText.setPosition(_menux+TILESIZE/2, 4.7*TILESIZE);
@@ -438,10 +437,8 @@ void App::_drawMenu(){
     _menuText.setString(to_string(_nextGameHeight));
     _menuText.setPosition(_menux+TILESIZE*7.33-_menuText.getLocalBounds().width/2., 4.7*TILESIZE);
     _window->draw(_menuText);
-    _leftArrow.setPosition(_menux+TILESIZE*6, 4.5*TILESIZE);
-    _window->draw(_leftArrow);
-    _rightArrow.setPosition(_menux+TILESIZE*7.7, 4.5*TILESIZE);
-    _window->draw(_rightArrow);
+    _window->draw(_gameHeightDownArrow);
+    _window->draw(_gameHeightUpArrow);
 
     // option 5: number of bombs
     _menuText.setPosition(_menux+TILESIZE/2, 5.7*TILESIZE);
@@ -450,10 +447,8 @@ void App::_drawMenu(){
     _menuText.setString(to_string(_nextNumBombs));
     _menuText.setPosition(_menux+TILESIZE*7.33-_menuText.getLocalBounds().width/2., 5.7*TILESIZE);
     _window->draw(_menuText);
-    _leftArrow.setPosition(_menux+TILESIZE*6, 5.5*TILESIZE);
-    _window->draw(_leftArrow);
-    _rightArrow.setPosition(_menux+TILESIZE*7.7, 5.5*TILESIZE);
-    _window->draw(_rightArrow);
+    _window->draw(_numBombsDownArrow);
+    _window->draw(_numBombsUpArrow);
     return;
 }
 
@@ -518,21 +513,6 @@ void App::_drawBorder(){
 
 bool App::_loadAssets(){
 
-    if (!_font.loadFromFile(FONTFILE)){
-        return false;
-    }
-
-    _menuShading.setFillColor(Color(0, 0, 0, 80));
-    _menuShading.setPosition(0, 0);
-    _menuText.setFont(_font);
-    _menuText.setFillColor(Color::Black);
-    _menuText.setCharacterSize(TILESIZE/2);
-    _menuTitleText.setFont(_font);
-    _menuTitleText.setFillColor(Color::Black);
-    _menuTitleText.setCharacterSize(TILESIZE*3/4);
-    _menuTitleText.setPosition(_menux+TILESIZE*3.2, TILESIZE/3);
-    _menuTitleText.setString("MENU:");
-
     // background rectangle
     _background.setFillColor(Color(90, 90, 90));
     _background.setPosition(0, 0);
@@ -544,89 +524,89 @@ bool App::_loadAssets(){
     }
     _appspritesheet.setSmooth(false);
 
-    const float scale = (float)TILESIZE / SPRITETILESIZE;
+    const Vector2f scale((float)TILESIZE/SPRITETILESIZE, (float)TILESIZE/SPRITETILESIZE);
     // top left
     _tl.setTexture(_appspritesheet);
     _tl.setTextureRect(IntRect(0, 0, SPRITETILESIZE, SPRITETILESIZE));
-    _tl.setScale(scale, scale);
+    _tl.setScale(scale);
     // top
     _t.setTexture(_appspritesheet);
     _t.setTextureRect(IntRect(16, 0, SPRITETILESIZE, SPRITETILESIZE));
-    _t.setScale(scale, scale);
+    _t.setScale(scale);
     // top right
     _tr.setTexture(_appspritesheet);
     _tr.setTextureRect(IntRect(32, 0, SPRITETILESIZE, SPRITETILESIZE));
-    _tr.setScale(scale, scale);
+    _tr.setScale(scale);
     // left
     _l.setTexture(_appspritesheet);
     _l.setTextureRect(IntRect(0, 16, SPRITETILESIZE, SPRITETILESIZE));
-    _l.setScale(scale, scale);
+    _l.setScale(scale);
     // middle
     _m.setTexture(_appspritesheet);
     _m.setTextureRect(IntRect(16, 16, SPRITETILESIZE, SPRITETILESIZE));
-    _m.setScale(scale, scale);
+    _m.setScale(scale);
     // right
     _r.setTexture(_appspritesheet);
     _r.setTextureRect(IntRect(32, 16, SPRITETILESIZE, SPRITETILESIZE));
-    _r.setScale(scale, scale);
+    _r.setScale(scale);
     // bottom left
     _bl.setTexture(_appspritesheet);
     _bl.setTextureRect(IntRect(0, 32, SPRITETILESIZE, SPRITETILESIZE));
-    _bl.setScale(scale, scale);
+    _bl.setScale(scale);
     // bottom middle
     _b.setTexture(_appspritesheet);
     _b.setTextureRect(IntRect(16, 32, SPRITETILESIZE, SPRITETILESIZE));
-    _b.setScale(scale, scale);
+    _b.setScale(scale);
     // bottom right
     _br.setTexture(_appspritesheet);
     _br.setTextureRect(IntRect(32, 32, SPRITETILESIZE, SPRITETILESIZE));
-    _br.setScale(scale, scale);
+    _br.setScale(scale);
     // top left grid corner
     _tlg.setTexture(_appspritesheet);
     _tlg.setTextureRect(IntRect(0, 48, SPRITETILESIZE, SPRITETILESIZE));
-    _tlg.setScale(scale, scale);
+    _tlg.setScale(scale);
     // top grid middle
     _tg.setTexture(_appspritesheet);
     _tg.setTextureRect(IntRect(16, 48, SPRITETILESIZE, SPRITETILESIZE));
-    _tg.setScale(scale, scale);
+    _tg.setScale(scale);
     // top right grid corner
     _trg.setTexture(_appspritesheet);
     _trg.setTextureRect(IntRect(32, 48, SPRITETILESIZE, SPRITETILESIZE));
-    _trg.setScale(scale, scale);
+    _trg.setScale(scale);
     // left grid side
     _lg.setTexture(_appspritesheet);
     _lg.setTextureRect(IntRect(0, 64, SPRITETILESIZE, SPRITETILESIZE));
-    _lg.setScale(scale, scale);
+    _lg.setScale(scale);
     // right grid side
     _rg.setTexture(_appspritesheet);
     _rg.setTextureRect(IntRect(32, 64, SPRITETILESIZE, SPRITETILESIZE));
-    _rg.setScale(scale, scale);
+    _rg.setScale(scale);
     // bottom left grid corner
     _blg.setTexture(_appspritesheet);
     _blg.setTextureRect(IntRect(0, 80, SPRITETILESIZE, SPRITETILESIZE));
-    _blg.setScale(scale, scale);
+    _blg.setScale(scale);
     // bottom grid middle
     _bg.setTexture(_appspritesheet);
     _bg.setTextureRect(IntRect(16, 80, SPRITETILESIZE, SPRITETILESIZE));
-    _bg.setScale(scale, scale);
+    _bg.setScale(scale);
     // bottom right grid corner
     _brg.setTexture(_appspritesheet);
     _brg.setTextureRect(IntRect(32, 80, SPRITETILESIZE, SPRITETILESIZE));
-    _brg.setScale(scale, scale);
+    _brg.setScale(scale);
     
     // load happy face
     _happyFaceSprite.setTexture(_appspritesheet);
-    _happyFaceSprite.setScale(scale, scale);
+    _happyFaceSprite.setScale(scale);
     _happyFaceSprite.setTextureRect(IntRect(0, 96, 32, 32));
     _happyFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2);
     // load cool face
     _coolFaceSprite.setTexture(_appspritesheet);
-    _coolFaceSprite.setScale(scale, scale);
+    _coolFaceSprite.setScale(scale);
     _coolFaceSprite.setTextureRect(IntRect(32, 96, 32, 32));
     _coolFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2);
     // load sad face
     _sadFaceSprite.setTexture(_appspritesheet);
-    _sadFaceSprite.setScale(scale, scale);
+    _sadFaceSprite.setScale(scale);
     _sadFaceSprite.setTextureRect(IntRect(64, 96, 32, 32));
     _sadFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2);
 
@@ -644,7 +624,7 @@ bool App::_loadAssets(){
         IntRect(112, 24, SPRITETILESIZE, SPRITETILESIZE*1.5)
     };
     Sprite digitSprite(_appspritesheet);
-    digitSprite.setScale(scale, scale);
+    digitSprite.setScale(scale);
     for (int digit = 0; digit < 10; digit++){
         digitSprite.setTextureRect(spriteLocations[digit]);
         digitSprite.setPosition(TILESIZE*(3./4), TILESIZE*(3./4));
@@ -673,21 +653,50 @@ bool App::_loadAssets(){
         _digitSprites[5][digit] = digitSprite;
     }
 
-    // check box
-    _checkBoxFalse.setTexture(_appspritesheet);
-    _checkBoxFalse.setTextureRect(IntRect(3*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE));
-    _checkBoxFalse.setScale(scale, scale);
-    _checkBoxTrue.setTexture(_appspritesheet);
-    _checkBoxTrue.setTextureRect(IntRect(4*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE));
-    _checkBoxTrue.setScale(scale, scale);
+    // texture rectangles
+    IntRect checkBoxFalseRect(3*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE);
+    IntRect checkBoxTrueRect(4*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE);
+    IntRect leftArrowRect(5*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE);
+    IntRect rightArrowRect(6*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE);
 
-    // left and right arrows
-    _leftArrow.setTexture(_appspritesheet);
-    _leftArrow.setTextureRect(IntRect(5*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE));
-    _leftArrow.setScale(scale, scale);
-    _rightArrow.setTexture(_appspritesheet);
-    _rightArrow.setTextureRect(IntRect(6*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE));
-    _rightArrow.setScale(scale, scale);
+    // load font
+    if (!_font.loadFromFile(FONTFILE)){
+        return false;
+    }
+
+    // menu and menu text
+    _menuShading.setFillColor(Color(0, 0, 0, 80));
+    _menuShading.setPosition(0, 0);
+    _menuText.setFont(_font);
+    _menuText.setFillColor(Color::Black);
+    _menuText.setCharacterSize(TILESIZE/2);
+    _menuTitleText.setFont(_font);
+    _menuTitleText.setFillColor(Color::Black);
+    _menuTitleText.setCharacterSize(TILESIZE*3/4);
+    _menuTitleText.setPosition(_menux+TILESIZE*3.2, TILESIZE/3);
+    _menuTitleText.setString("MENU:");
+
+    // set option sprites
+    _zoomEnabledCheckboxFalse = Sprite(_appspritesheet, checkBoxFalseRect);
+    _zoomEnabledCheckboxFalse.setScale(scale);
+    _zoomEnabledCheckboxTrue = Sprite(_appspritesheet, checkBoxTrueRect);
+    _zoomEnabledCheckboxTrue.setScale(scale);
+    _chordingEnabledCheckboxFalse = Sprite(_appspritesheet, checkBoxFalseRect);
+    _chordingEnabledCheckboxFalse.setScale(scale);
+    _chordingEnabledCheckboxTrue = Sprite(_appspritesheet, checkBoxTrueRect);
+    _chordingEnabledCheckboxTrue.setScale(scale);
+    _gameWidthDownArrow = Sprite(_appspritesheet, leftArrowRect);
+    _gameWidthDownArrow.setScale(scale);
+    _gameWidthUpArrow = Sprite(_appspritesheet, rightArrowRect);
+    _gameWidthUpArrow.setScale(scale);
+    _gameHeightDownArrow = Sprite(_appspritesheet, leftArrowRect);
+    _gameHeightDownArrow.setScale(scale);
+    _gameHeightUpArrow = Sprite(_appspritesheet, rightArrowRect);
+    _gameHeightUpArrow.setScale(scale);
+    _numBombsDownArrow = Sprite(_appspritesheet, leftArrowRect);
+    _numBombsDownArrow.setScale(scale);
+    _numBombsUpArrow = Sprite(_appspritesheet, rightArrowRect);
+    _numBombsUpArrow.setScale(scale);
 
     return true;
 }
