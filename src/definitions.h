@@ -1,12 +1,10 @@
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
 
-
-#define CONFIGFILE          "config.txt"
-#define APPSPRITESHEET      "assets/appspritesheet.png"
-#define GAMESPRITESHEET     "assets/gamespritesheet.png"
-#define ICONFILE            "assets/icon.png"
-#define FONTFILE            "assets/pixelmix/pixelmix.ttf"
+#define APPSPRITESHEETPATH  "../assets/appspritesheet.h"
+#define GAMESPRITESHEETPATH "../assets/gamespritesheet.h"
+#define ICONPATH            "../assets/icon.h"
+#define FONTPATH            "../assets/pixelmix/font.h"
 
 #define MAXGAMEWIDTH        64
 #define MINGAMEWIDTH        8

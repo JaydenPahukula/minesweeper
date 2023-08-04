@@ -1,7 +1,10 @@
+#include "definitions.h"
 
 #include "App.h"
-#include "definitions.h"
 #include "Game.h"
+
+#include APPSPRITESHEETPATH
+#include FONTPATH
 
 #include <SFML/Graphics.hpp>
 using namespace sf;
@@ -519,7 +522,7 @@ bool App::_loadAssets(){
     _background.setSize(Vector2f(_windowWidth, _windowHeight));
     
     // load texture from sprite sheet
-    if(!_appspritesheet.loadFromFile(APPSPRITESHEET)){
+    if(!_appspritesheet.loadFromMemory(APPSPRITESHEETFILE, sizeof(APPSPRITESHEETFILE))){
         return false;
     }
     _appspritesheet.setSmooth(false);
@@ -660,7 +663,7 @@ bool App::_loadAssets(){
     IntRect rightArrowRect(6*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE);
 
     // load font
-    if (!_font.loadFromFile(FONTFILE)){
+    if (!_font.loadFromMemory(FONTFILE, sizeof(FONTFILE))){
         return false;
     }
 

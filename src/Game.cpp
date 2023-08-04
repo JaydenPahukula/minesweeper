@@ -1,6 +1,7 @@
-
 #include "definitions.h"
 #include "Game.h"
+
+#include GAMESPRITESHEETPATH
 
 #include <SFML/Graphics.hpp>
 using namespace sf;
@@ -254,7 +255,7 @@ void Game::_chord(unsigned int x, unsigned int y){
 
 bool Game::_loadTileSprites(){
     // load texture from sprite sheet
-    if (!_tilespritesheet.loadFromFile(GAMESPRITESHEET)){
+    if (!_tilespritesheet.loadFromMemory(GAMESPRITESHEETFILE, sizeof(GAMESPRITESHEETFILE))){
         return false;
     }
     _tilespritesheet.setSmooth(false);

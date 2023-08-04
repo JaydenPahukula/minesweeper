@@ -2,6 +2,8 @@
 #include "definitions.h"
 #include "App.h"
 
+#include ICONPATH
+
 #include <SFML/Graphics.hpp>
 using namespace sf;
 
@@ -16,7 +18,7 @@ int main() {
 
     // set window icon
     Image icon;
-    icon.loadFromFile(ICONFILE);
+    icon.loadFromMemory(ICONFILE, sizeof(ICONFILE));
     window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
 
     // create game
