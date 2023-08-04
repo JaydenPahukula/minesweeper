@@ -1,58 +1,27 @@
-TARGET = minesweeper
-SRC_FILES = src/App.cpp src/main.cpp src/Game.cpp src/Tile.cpp
-
-CXX = g++
-CFLAGS = -Wall -g -std=c++11
+TARGET = minesweeper.exe
+SRC_FILES = src\App.cpp src\main.cpp src\Game.cpp src\Tile.cpp
 
 OBJECTS = $(SRC_FILES:.cpp=.o)
 
-ifeq ($(OS),Windows_NT)
-	TARGET := $(TARGET).exe
-	DEL = del
+CFLAGS = -Wall -g -std=c++11 -static-libgcc -static-libstdc++ -static
+SFML_FLAGS = -DSFML_STATIC
 
-	INC_PATH = Z:/CSCI200/include/
-	LIB_PATH = Z:/CSCI200/lib/
+INC_PATH = .\lib\SFML\include
+LIB_PATH = .\lib\SFML\lib
 
-	ARCH = 
-else
-	DEL = rm
+LIBS = sfml-graphics-s sfml-window-s sfml-system-s opengl32 freetype winmm gdi32
 
-	INC_PATH = /usr/local/include/
-	LIB_PATH = /usr/local/lib/
-
-	UNAME_S := $(shell uname -s)
-	ifeq ($(UNAME_S),Linux)
-		CCFLAGS += -D LINUX
-	endif
-	ifeq ($(UNAME_S),Darwin)
-		TARGET_MAKEFILE = Makefile.osx
-		CCFLAGS += -D OSX
-	endif
-
-	UNAME_P := $(shell uname -p)
-	ifeq ($(UNAME_P),x86_64)
-		ARCH = 
-	endif
-	ifneq ($(filter %86,$(UNAME_P)),)
-		ARCH = 
-	endif
-	ifneq ($(filter arm%,$(UNAME_P)),)
-		ARCH = -arch x86_64
-	endif
-endif
-
-LIBS = -lsfml-graphics -lsfml-window -lsfml-system
 
 all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
-	$(CXX) $(ARCH) -o $@ $^ -L$(LIB_PATH) $(LIBS)
+	g++ $^ -o $@ $(CFLAGS) $(SFML_FLAGS) -I$(INC_PATH) -L$(LIB_PATH) $(addprefix -l,$(LIBS))
 
 .cpp.o:
-	$(CXX) $(CFLAGS) $(ARCH) -o $@ -c $< -I$(INC_PATH)
+	g++ -o $@ -c $< $(CFLAGS) $(SFML_FLAGS) -I$(INC_PATH) -L$(LIB_PATH) $(addprefix -l,$(LIBS))
 
 clean:
-	$(DEL) $(TARGET) $(OBJECTS)
+	del $(TARGET) $(OBJECTS)
 
 # DEPENDENCIES
 src/main.o: src/main.cpp src/definitions.h src/App.h
