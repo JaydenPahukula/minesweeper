@@ -1,3 +1,6 @@
+#ifndef DEFINITIONS_H
+#define DEFINITIONS_H
+
 
 #define CONFIGFILE          "config.txt"
 #define APPSPRITESHEET      "assets/appspritesheet.png"
@@ -24,3 +27,6 @@
 #define DEFAULTGAMEWIDTH    10
 #define DEFAULTGAMEHEIGHT   10
 #define DEFAULTNUMBOMBS     8
+
+
+#endif
