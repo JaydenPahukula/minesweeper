@@ -2,9 +2,9 @@
 #define APP_H
 
 #include "Game.h"
+#include "Menu.h"
 
 #include <SFML/Graphics.hpp>
-#include <vector>
 
 #include <ctime>
 
@@ -61,23 +61,21 @@ class App {
         sf::Sprite _tl, _t, _tr, _l, _m, _r, _bl, _b, _br, _tlg, _tg, _trg, _lg, _rg, _blg, _bg, _brg;
         sf::Sprite _happyFaceSprite, _coolFaceSprite, _sadFaceSprite;
         sf::Sprite _digitSprites[6][10];
-        bool _loadAssets();
+        void _loadAssets();
         void _updateSpriteLocations();
         void _drawBorder();
 
         // menu
         bool _menuOpen;
-        unsigned int _menux, _menuWidth, _menuHeight;
-        sf::Font _font, _boldFont;
-        sf::Text _menuText, _menuTitleText;
-        sf::RectangleShape _menuShading;
-        void _drawMenu();
+        Menu* _menu;
+        sf::RectangleShape _backgroundDim;
+        void _boundMenuOptions();
         // menu options
-        bool _zoomEnabled; sf::Sprite _zoomEnabledCheckboxTrue; sf::Sprite _zoomEnabledCheckboxFalse;
-        bool _chordingEnabled; sf::Sprite _chordingEnabledCheckboxTrue; sf::Sprite _chordingEnabledCheckboxFalse;
-        unsigned int _nextGameWidth; sf::Sprite _gameWidthDownArrow; sf::Sprite _gameWidthUpArrow;
-        unsigned int _nextGameHeight; sf::Sprite _gameHeightDownArrow; sf::Sprite _gameHeightUpArrow;
-        unsigned int _nextNumBombs; sf::Sprite _numBombsDownArrow; sf::Sprite _numBombsUpArrow;
+        bool _zoomEnabled;
+        bool _chordingEnabled;
+        unsigned int _nextGameWidth;
+        unsigned int _nextGameHeight;
+        unsigned int _nextNumBombs;
 
         // mouse/panning
         bool _holding, _panning;

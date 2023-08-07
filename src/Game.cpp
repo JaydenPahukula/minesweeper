@@ -47,9 +47,7 @@ Game::Game(unsigned int width, unsigned int height, unsigned int numBombs, int s
     }
 
     // init tiles
-    if (!_loadTileSprites()){
-        cerr << endl << "error opening tile sprite sheet" << endl;
-    }
+    _loadTileSprites();
 }
 
 
@@ -253,11 +251,10 @@ void Game::_chord(unsigned int x, unsigned int y){
 
 
 
-bool Game::_loadTileSprites(){
+void Game::_loadTileSprites(){
+
     // load texture from sprite sheet
-    if (!_tilespritesheet.loadFromMemory(GAMESPRITESHEETFILE, sizeof(GAMESPRITESHEETFILE))){
-        return false;
-    }
+    _tilespritesheet.loadFromMemory(GAMESPRITESHEETFILE, sizeof(GAMESPRITESHEETFILE));
     _tilespritesheet.setSmooth(false);
 
     const float scale = (float)TILESIZE / SPRITETILESIZE;
@@ -324,5 +321,5 @@ bool Game::_loadTileSprites(){
         }
     }
 
-    return true;
+    return;
 }

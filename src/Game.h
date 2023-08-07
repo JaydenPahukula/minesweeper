@@ -40,7 +40,7 @@ class Game {
         unsigned int _numBombsRemaining;
 
         // textures and sprites
-        bool _loadTileSprites();
+        void _loadTileSprites();
         sf::Texture _tilespritesheet;
 
         // game functions

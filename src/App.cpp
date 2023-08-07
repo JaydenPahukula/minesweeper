@@ -2,9 +2,9 @@
 
 #include "App.h"
 #include "Game.h"
+#include "Menu.h"
 
 #include APPSPRITESHEETPATH
-#include FONTPATH
 
 #include <SFML/Graphics.hpp>
 using namespace sf;
@@ -39,16 +39,6 @@ App::App(RenderWindow &window){
     _boardx = TILESIZE;
     _boardy = TILESIZE*3;
     _boardTileSize =  TILESIZE;
-    // initialize menu
-    _menux = (_windowWidth/2) - (_menuWidth/2);
-    _menuOpen = false;
-    _menuWidth = 9*TILESIZE;
-    _menuHeight = 450;
-    _zoomEnabled = DEFAULTZOOMENABLED;
-    _chordingEnabled = DEFAULTCHORDING;
-    _nextGameWidth = DEFAULTGAMEWIDTH;
-    _nextGameHeight = DEFAULTGAMEHEIGHT;
-    _nextNumBombs = DEFAULTNUMBOMBS;
     
     // panning
     _holding = false;
@@ -59,9 +49,21 @@ App::App(RenderWindow &window){
     _startTime = 0;
 
     // load assets
-    if (!_loadAssets()){
-        cerr << endl << "error loading assets" << endl;
-    }
+    _loadAssets();
+
+    // initialize menu
+    _menu = new Menu(&_appspritesheet);
+    _menuOpen = false;
+    _zoomEnabled = DEFAULTZOOMENABLED;
+    _menu->addBoolItem(&_zoomEnabled, "Zoom enabled");
+    _chordingEnabled = DEFAULTCHORDING;
+    _menu->addBoolItem(&_chordingEnabled, "Chording enabled");
+    _nextGameWidth = DEFAULTGAMEWIDTH;
+    _menu->addIntItem(&_nextGameWidth, "Game width");
+    _nextGameHeight = DEFAULTGAMEHEIGHT;
+    _menu->addIntItem(&_nextGameHeight, "Game height");
+    _nextNumBombs = DEFAULTNUMBOMBS;
+    _menu->addIntItem(&_nextNumBombs, "Number of bombs");
 
     // update all dynamic sprite locations
     _updateSpriteLocations();
@@ -126,9 +128,12 @@ void App::draw(){
     // x.setPosition(_maxBoardx-5, _maxBoardy-5);
     // _window->draw(x);
 
-    // draw menu
+
     if (_menuOpen){
-        _drawMenu();
+        // dim background
+        _window->draw(_backgroundDim);
+        // draw menu
+        _menu->draw(*_window, _windowWidth);
     }
 
     return;
@@ -172,37 +177,9 @@ void App::zoom(const Event::MouseWheelScrollEvent mouse){
 
 void App::mouseClick(const Event::MouseButtonEvent mouse){
     if (_menuOpen){
-        Rect<int> menuBox(_menux, 0, _menuWidth, _menuHeight);
-        if (mouse.button == Mouse::Left && menuBox.contains(mouse.x, mouse.y)){
-            // clicked on menu option 1: zooming enabled
-            if (_zoomEnabledCheckboxTrue.getGlobalBounds().contains(mouse.x, mouse.y)){
-                if (_zoomEnabled) _resetBoardView();
-                _zoomEnabled = !_zoomEnabled;
-            }
-            // clicked on menu option 2: chording enabled
-            if (_chordingEnabledCheckboxTrue.getGlobalBounds().contains(mouse.x, mouse.y)){
-                _chordingEnabled = !_chordingEnabled;
-            }
-            // clicked on menu option 3: game width
-            if (_gameWidthDownArrow.getGlobalBounds().contains(mouse.x, mouse.y)){
-                _nextGameWidth = max((int)_nextGameWidth-1, MINGAMEWIDTH);
-            }
-            if (_gameWidthUpArrow.getGlobalBounds().contains(mouse.x, mouse.y)){
-                _nextGameWidth = min((int)_nextGameWidth+1, MAXGAMEWIDTH);
-            }
-            // clicked on menu option 4: game height
-            if (_gameHeightDownArrow.getGlobalBounds().contains(mouse.x, mouse.y)){
-                _nextGameHeight = max((int)_nextGameHeight-1, MINGAMEWIDTH);
-            }
-            if (_gameHeightUpArrow.getGlobalBounds().contains(mouse.x, mouse.y)){
-                _nextGameHeight = min((int)_nextGameHeight+1, MAXGAMEWIDTH);
-            }
-            // clicked on menu option 5: num bombs
-            if (_numBombsDownArrow.getGlobalBounds().contains(mouse.x, mouse.y)){
-                _nextNumBombs = max((int)_nextNumBombs-1, 1);
-            }
-            if (_numBombsUpArrow.getGlobalBounds().contains(mouse.x, mouse.y)){
-                _nextNumBombs = min((int)_nextNumBombs+1, min((int)_nextGameHeight*(int)_nextGameWidth, MAXNUMBOMBS));
+        if (mouse.button == Mouse::Left && _menu->getBounds(_windowWidth).contains(mouse.x, mouse.y)){
+            if (_menu->click(mouse)){
+                _boundMenuOptions();
             }
         } else {
             // clicked outside menu, so close menu
@@ -285,7 +262,7 @@ void App::mouseMove(const Event::MouseMoveEvent mouse){
 
 
 void App::keyPress(const Event::KeyEvent key){
-    if (key.code == 36){
+    if (key.code == 36){ // esc
         _menuOpen = !_menuOpen;
     }
     return;
@@ -300,10 +277,8 @@ unsigned int App::windowHeight() const { return _windowHeight; }
 void App::_updateSpriteLocations(){
     // uodate background
     _background.setSize(Vector2f(_windowWidth, _windowHeight));
-    // update menu
-    _menuShading.setSize(Vector2f(_windowWidth, _windowHeight));
-    _menux = (_windowWidth/2) - (_menuWidth/2);
-    _menuTitleText.setPosition(_menux+TILESIZE*3.2, TILESIZE/3);
+    // update background dim
+    _backgroundDim.setSize(Vector2f(_windowWidth, _windowHeight));
     // update faces
     _happyFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2.);
     _coolFaceSprite.setPosition(_windowWidth/2.-TILESIZE, TILESIZE/2.);
@@ -314,17 +289,6 @@ void App::_updateSpriteLocations(){
         _digitSprites[4][digit].setPosition(_windowWidth-TILESIZE*(11./4), TILESIZE*(3./4));
         _digitSprites[5][digit].setPosition(_windowWidth-TILESIZE*(7./4), TILESIZE*(3./4));
     }
-    // menu options
-    _zoomEnabledCheckboxFalse.setPosition(_menux+TILESIZE*7.5, 1.5*TILESIZE);
-    _zoomEnabledCheckboxTrue.setPosition(_menux+TILESIZE*7.5, 1.5*TILESIZE);
-    _chordingEnabledCheckboxFalse.setPosition(_menux+TILESIZE*7.5, 2.5*TILESIZE);
-    _chordingEnabledCheckboxTrue.setPosition(_menux+TILESIZE*7.5, 2.5*TILESIZE);
-    _gameWidthDownArrow.setPosition(_menux+TILESIZE*6, 3.5*TILESIZE);
-    _gameWidthUpArrow.setPosition(_menux+TILESIZE*7.7, 3.5*TILESIZE);
-    _gameHeightDownArrow.setPosition(_menux+TILESIZE*6, 4.5*TILESIZE);
-    _gameHeightUpArrow.setPosition(_menux+TILESIZE*7.7, 4.5*TILESIZE);
-    _numBombsDownArrow.setPosition(_menux+TILESIZE*6, 5.5*TILESIZE);
-    _numBombsUpArrow.setPosition(_menux+TILESIZE*7.7, 5.5*TILESIZE);
     return;
 }
 
@@ -370,89 +334,14 @@ void App::_keepBoardInView(){
 }
 
 
-void App::_drawMenu(){
-
-    // shading
-    _window->draw(_menuShading);
-
-    // background
-    for (unsigned int y = 0; y < _menuHeight-TILESIZE; y += TILESIZE){
-        // middle area
-        for (unsigned int x = _menux+TILESIZE; x < _menux+_menuWidth-TILESIZE; x += TILESIZE){
-            _m.setPosition(x, y);
-            _window->draw(_m);
-        }
-        // left edge
-        _l.setPosition(_menux, y);
-        _window->draw(_l);
-        // right edge
-        _r.setPosition(_menux+_menuWidth-TILESIZE, y);
-        _window->draw(_r);
-    }
-    // bottom edge
-    for (unsigned int x = _menux+TILESIZE; x < _menux+_menuWidth-TILESIZE; x += TILESIZE){
-        _b.setPosition(x, _menuHeight-TILESIZE);
-        _window->draw(_b);
-    }
-    // corners
-    _bl.setPosition(_menux, _menuHeight-TILESIZE);
-    _window->draw(_bl);
-    _br.setPosition(_menux+_menuWidth-TILESIZE, _menuHeight-TILESIZE);
-    _window->draw(_br);
-
-    // title
-    _window->draw(_menuTitleText);
-
-    // option 1: zoom enabled
-    _menuText.setPosition(_menux+TILESIZE/2, 1.7*TILESIZE);
-    _menuText.setString("Zooming enabled");
-    _window->draw(_menuText);
-    if (_zoomEnabled){ 
-        _window->draw(_zoomEnabledCheckboxTrue);
-    } else {           
-        _window->draw(_zoomEnabledCheckboxFalse);
-    }
-
-    // option 2: chording enabled
-    _menuText.setPosition(_menux+TILESIZE/2, 2.7*TILESIZE);
-    _menuText.setString("Chording enabled");
-    _window->draw(_menuText);
-    if (_chordingEnabled){
-        _window->draw(_chordingEnabledCheckboxTrue);
-    } else {
-        _window->draw(_chordingEnabledCheckboxFalse);
-    }
-
-    // option 3: game width
-    _menuText.setPosition(_menux+TILESIZE/2, 3.7*TILESIZE);
-    _menuText.setString("Game width");
-    _window->draw(_menuText);
-    _menuText.setString(to_string(_nextGameWidth));
-    _menuText.setPosition(_menux+TILESIZE*7.33-_menuText.getGlobalBounds().width/2., 3.7*TILESIZE);
-    _window->draw(_menuText);
-    _window->draw(_gameWidthDownArrow);
-    _window->draw(_gameWidthUpArrow);
-
-    // option 4: game height
-    _menuText.setPosition(_menux+TILESIZE/2, 4.7*TILESIZE);
-    _menuText.setString("Game height");
-    _window->draw(_menuText);
-    _menuText.setString(to_string(_nextGameHeight));
-    _menuText.setPosition(_menux+TILESIZE*7.33-_menuText.getLocalBounds().width/2., 4.7*TILESIZE);
-    _window->draw(_menuText);
-    _window->draw(_gameHeightDownArrow);
-    _window->draw(_gameHeightUpArrow);
-
-    // option 5: number of bombs
-    _menuText.setPosition(_menux+TILESIZE/2, 5.7*TILESIZE);
-    _menuText.setString("Number of bombs");
-    _window->draw(_menuText);
-    _menuText.setString(to_string(_nextNumBombs));
-    _menuText.setPosition(_menux+TILESIZE*7.33-_menuText.getLocalBounds().width/2., 5.7*TILESIZE);
-    _window->draw(_menuText);
-    _window->draw(_numBombsDownArrow);
-    _window->draw(_numBombsUpArrow);
-    return;
+void App::_boundMenuOptions(){
+    _nextGameWidth = max(_nextGameWidth, (unsigned int)MINGAMEWIDTH);
+    _nextGameWidth = min(_nextGameWidth, (unsigned int)MAXGAMEWIDTH);
+    _nextGameHeight = max(_nextGameHeight, (unsigned int)MINGAMEHEIGHT);
+    _nextGameHeight = min(_nextGameHeight, (unsigned int)MAXGAMEHEIGHT);
+    _nextNumBombs = max((int)_nextNumBombs, 1);
+    _nextNumBombs = min(_nextNumBombs, (unsigned int)MAXNUMBOMBS);
+    _nextNumBombs = min(_nextNumBombs, _nextGameWidth*_nextGameHeight);
 }
 
 
@@ -514,17 +403,17 @@ void App::_drawBorder(){
 }
 
 
-bool App::_loadAssets(){
+void App::_loadAssets(){
 
     // background rectangle
     _background.setFillColor(Color(90, 90, 90));
     _background.setPosition(0, 0);
-    _background.setSize(Vector2f(_windowWidth, _windowHeight));
+    // background shading
+    _backgroundDim.setFillColor(Color(0, 0, 0, 80));
+    _backgroundDim.setPosition(0, 0);
     
     // load texture from sprite sheet
-    if(!_appspritesheet.loadFromMemory(APPSPRITESHEETFILE, sizeof(APPSPRITESHEETFILE))){
-        return false;
-    }
+    _appspritesheet.loadFromMemory(APPSPRITESHEETFILE, sizeof(APPSPRITESHEETFILE));
     _appspritesheet.setSmooth(false);
 
     const Vector2f scale((float)TILESIZE/SPRITETILESIZE, (float)TILESIZE/SPRITETILESIZE);
@@ -656,50 +545,5 @@ bool App::_loadAssets(){
         _digitSprites[5][digit] = digitSprite;
     }
 
-    // texture rectangles
-    IntRect checkBoxFalseRect(3*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE);
-    IntRect checkBoxTrueRect(4*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE);
-    IntRect leftArrowRect(5*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE);
-    IntRect rightArrowRect(6*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE);
-
-    // load font
-    if (!_font.loadFromMemory(FONTFILE, sizeof(FONTFILE))){
-        return false;
-    }
-
-    // menu and menu text
-    _menuShading.setFillColor(Color(0, 0, 0, 80));
-    _menuShading.setPosition(0, 0);
-    _menuText.setFont(_font);
-    _menuText.setFillColor(Color::Black);
-    _menuText.setCharacterSize(TILESIZE/2);
-    _menuTitleText.setFont(_font);
-    _menuTitleText.setFillColor(Color::Black);
-    _menuTitleText.setCharacterSize(TILESIZE*3/4);
-    _menuTitleText.setPosition(_menux+TILESIZE*3.2, TILESIZE/3);
-    _menuTitleText.setString("MENU:");
-
-    // set option sprites
-    _zoomEnabledCheckboxFalse = Sprite(_appspritesheet, checkBoxFalseRect);
-    _zoomEnabledCheckboxFalse.setScale(scale);
-    _zoomEnabledCheckboxTrue = Sprite(_appspritesheet, checkBoxTrueRect);
-    _zoomEnabledCheckboxTrue.setScale(scale);
-    _chordingEnabledCheckboxFalse = Sprite(_appspritesheet, checkBoxFalseRect);
-    _chordingEnabledCheckboxFalse.setScale(scale);
-    _chordingEnabledCheckboxTrue = Sprite(_appspritesheet, checkBoxTrueRect);
-    _chordingEnabledCheckboxTrue.setScale(scale);
-    _gameWidthDownArrow = Sprite(_appspritesheet, leftArrowRect);
-    _gameWidthDownArrow.setScale(scale);
-    _gameWidthUpArrow = Sprite(_appspritesheet, rightArrowRect);
-    _gameWidthUpArrow.setScale(scale);
-    _gameHeightDownArrow = Sprite(_appspritesheet, leftArrowRect);
-    _gameHeightDownArrow.setScale(scale);
-    _gameHeightUpArrow = Sprite(_appspritesheet, rightArrowRect);
-    _gameHeightUpArrow.setScale(scale);
-    _numBombsDownArrow = Sprite(_appspritesheet, leftArrowRect);
-    _numBombsDownArrow.setScale(scale);
-    _numBombsUpArrow = Sprite(_appspritesheet, rightArrowRect);
-    _numBombsUpArrow.setScale(scale);
-
-    return true;
+    return;
 }
