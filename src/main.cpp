@@ -7,8 +7,6 @@
 #include <SFML/Graphics.hpp>
 using namespace sf;
 
-#include <iostream>
-using namespace std;
 
 int main() {
     

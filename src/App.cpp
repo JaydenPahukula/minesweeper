@@ -9,11 +9,10 @@
 #include <SFML/Graphics.hpp>
 using namespace sf;
 
-#include <iostream>
+#include <math.h>
 using namespace std;
 
 #include <ctime>
-#include <cmath>
 
 
 
