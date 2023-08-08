@@ -11,50 +11,54 @@ using namespace sf;
 #include <vector>
 using namespace std;
 
+
 Menu::Menu(Texture *appSpriteSheet){
-    _width = 9*TILESIZE;
     _height = 450;
+    _width = 0;
+    _tileSize = SPRITETILESIZE;
+    _menux = 0;
+    _yindexCount = 0;
     _appspritesheet = appSpriteSheet;
     _loadAssets();
 }
 
 
 
-void Menu::draw(sf::RenderWindow& window, unsigned int windowWidth){
-    unsigned int xLocation =  (windowWidth/2) - (_width/2);
+void Menu::draw(RenderWindow& window){
+    const unsigned int width = _tileSize*9;
 
     // background
-    for (unsigned int y = 0; y < _height-TILESIZE; y += TILESIZE){
+    for (unsigned int y = 0; y < _height-_tileSize; y += _tileSize){
         // middle area
-        for (unsigned int x = xLocation+TILESIZE; x < xLocation+_width-TILESIZE; x += TILESIZE){
+        for (unsigned int x = _menux+_tileSize; x < _menux+width-_tileSize; x += _tileSize){
             _m.setPosition(x, y);
             window.draw(_m);
         }
         // left edge
-        _l.setPosition(xLocation, y);
+        _l.setPosition(_menux, y);
         window.draw(_l);
         // right edge
-        _r.setPosition(xLocation+_width-TILESIZE, y);
+        _r.setPosition(_menux+width-_tileSize, y);
         window.draw(_r);
     }
     // bottom edge
-    for (unsigned int x = xLocation+TILESIZE; x < xLocation+_width-TILESIZE; x += TILESIZE){
-        _b.setPosition(x, _height-TILESIZE);
+    for (unsigned int x = _menux+_tileSize; x < _menux+width-_tileSize; x += _tileSize){
+        _b.setPosition(x, _height-_tileSize);
         window.draw(_b);
     }
     // corners
-    _bl.setPosition(xLocation, _height-TILESIZE);
+    _bl.setPosition(_menux, _height-_tileSize);
     window.draw(_bl);
-    _br.setPosition(xLocation+_width-TILESIZE, _height-TILESIZE);
+    _br.setPosition(_menux+width-_tileSize, _height-_tileSize);
     window.draw(_br);
 
     // title text
-    _titleText.setPosition(xLocation+TILESIZE*3.2, TILESIZE/3);
+    _titleText.setPosition(_menux+_tileSize*3.2, _tileSize/3);
     window.draw(_titleText);
 
     // settings
     for (unsigned int i = 0; i < _settings.size(); i++){
-        _settings[i].draw(window, xLocation, i);
+        _settings[i].draw(window);
     }
 
     return;
@@ -77,48 +81,66 @@ bool Menu::click(const Event::MouseButtonEvent mouse){
 
 
 void Menu::addIntItem(unsigned int *setting, const std::string name){
-    _settings.push_back(Setting(this, name, true, nullptr, setting));
+    _settings.push_back(Setting(this, _yindexCount, name, true, nullptr, setting));
+    _yindexCount++;
 }
 
 
 void Menu::addBoolItem(bool *setting, const std::string name){
-    _settings.push_back(Setting(this, name, false, setting, nullptr));
+    _settings.push_back(Setting(this, _yindexCount, name, false, setting, nullptr));
+    _yindexCount++;
 }
 
 
-IntRect Menu::getBounds(const unsigned int windowWidth) const {
-    return IntRect((windowWidth/2)-(_width/2), 0, _width, _height);
+IntRect Menu::getBounds() const {
+    const unsigned int width = _tileSize*9;
+    return IntRect(_menux, 0, width, _height);
+}
+
+
+
+void Menu::updateAssets(const unsigned int tileSize, const unsigned int windowWidth){
+    _tileSize = tileSize;
+    _width = _tileSize*9;
+    _menux = (windowWidth/2.) - (_width/2.);
+
+    const Vector2f scale((float)_tileSize/SPRITETILESIZE, (float)_tileSize/SPRITETILESIZE);
+    _l.setScale(scale);
+    _m.setScale(scale);
+    _r.setScale(scale);
+    _bl.setScale(scale);
+    _b.setScale(scale);
+    _br.setScale(scale);
+    _titleText.setCharacterSize(_tileSize*3./4);
+
+    for (unsigned int i = 0; i < _settings.size(); i++){
+        _settings[i].updateAssets();
+    }
+    return;
 }
 
 
 
 void Menu::_loadAssets(){
 
-    const Vector2f scale((float)TILESIZE/SPRITETILESIZE, (float)TILESIZE/SPRITETILESIZE);
     // left
     _l.setTexture(*_appspritesheet);
     _l.setTextureRect(IntRect(0, 16, SPRITETILESIZE, SPRITETILESIZE));
-    _l.setScale(scale);
     // middle
     _m.setTexture(*_appspritesheet);
     _m.setTextureRect(IntRect(16, 16, SPRITETILESIZE, SPRITETILESIZE));
-    _m.setScale(scale);
     // right
     _r.setTexture(*_appspritesheet);
     _r.setTextureRect(IntRect(32, 16, SPRITETILESIZE, SPRITETILESIZE));
-    _r.setScale(scale);
     // bottom left
     _bl.setTexture(*_appspritesheet);
     _bl.setTextureRect(IntRect(0, 32, SPRITETILESIZE, SPRITETILESIZE));
-    _bl.setScale(scale);
     // bottom middle
     _b.setTexture(*_appspritesheet);
     _b.setTextureRect(IntRect(16, 32, SPRITETILESIZE, SPRITETILESIZE));
-    _b.setScale(scale);
     // bottom right
     _br.setTexture(*_appspritesheet);
     _br.setTextureRect(IntRect(32, 32, SPRITETILESIZE, SPRITETILESIZE));
-    _br.setScale(scale);
 
     // load font
     _font.loadFromMemory(FONTFILE, sizeof(FONTFILE));
@@ -126,16 +148,16 @@ void Menu::_loadAssets(){
     // set title text
     _titleText.setFont(_font);
     _titleText.setFillColor(Color::Black);
-    _titleText.setCharacterSize(TILESIZE*3/4);
     _titleText.setString("MENU:");
-
 }
 
 
 
 
-Menu::Setting::Setting(Menu *parent, const string name, const bool isInt, bool *boolSetting, unsigned int *intSetting){
+Menu::Setting::Setting(Menu *parent, const unsigned int yindex, const string name, const bool isInt, bool *boolSetting, unsigned int *intSetting){
+    // set variables
     this->parent = parent;
+    this->yindex = yindex;
     this->name = name;
     this->isInt = isInt;
     if (isInt){
@@ -145,34 +167,40 @@ Menu::Setting::Setting(Menu *parent, const string name, const bool isInt, bool *
         iSetting = nullptr;
         bSetting = boolSetting;
     }
-    loadAssets();
+    // load assets
+    nameText.setFont(parent->_font);
+    nameText.setFillColor(Color::Black);
+    nameText.setString(name);
+    valueText.setFont(parent->_font);
+    valueText.setFillColor(Color::Black);
+    if (isInt){
+        arrowUp = Sprite(*parent->_appspritesheet, IntRect(6*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE));
+        arrowDown = Sprite(*parent->_appspritesheet, IntRect(5*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE));
+    } else {
+        checkboxTrue = Sprite(*parent->_appspritesheet, IntRect(4*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE));
+        checkboxFalse = Sprite(*parent->_appspritesheet, IntRect(3*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE));
+    }
 }
 
 
 
-void Menu::Setting::draw(RenderWindow& window, const unsigned int menux, const unsigned int yindex){
+void Menu::Setting::draw(RenderWindow& window){
     // setting name
-    text.setPosition(menux+TILESIZE/2, (1.7+yindex)*TILESIZE);
-    text.setString(name);
-    window.draw(text);
+    window.draw(nameText);
     // draw checkbox or arrows
     if (isInt){
         // arrows
-        arrowUp.setPosition(menux+TILESIZE*7.7, (1.5+yindex)*TILESIZE);
         window.draw(arrowUp);
-        arrowDown.setPosition(menux+TILESIZE*6, (1.5+yindex)*TILESIZE);
         window.draw(arrowDown);
         // text
-        text.setString(to_string(*iSetting));
-        text.setPosition(menux+TILESIZE*7.33-text.getGlobalBounds().width/2., (1.7+yindex)*TILESIZE);
-        window.draw(text);
+        valueText.setString(to_string(*iSetting));
+        valueText.setPosition(parent->_menux+parent->_tileSize*7.33-valueText.getGlobalBounds().width/2., (1.7+yindex)*parent->_tileSize);
+        window.draw(valueText);
     } else {
         // checkbox
         if (*bSetting){
-            checkboxTrue.setPosition(menux+TILESIZE*7.5, (1.5+yindex)*TILESIZE);
             window.draw(checkboxTrue);
         } else {
-            checkboxFalse.setPosition(menux+TILESIZE*7.5, (1.5+yindex)*TILESIZE);
             window.draw(checkboxFalse);
         }
     }
@@ -210,29 +238,23 @@ bool Menu::Setting::checkClick(const Event::MouseButtonEvent& mouse){
 
 
 
-void Menu::Setting::loadAssets(){
-    
-    // text
-    text.setFont(parent->_font);
-    text.setFillColor(Color::Black);
-    text.setCharacterSize(TILESIZE/2);
+void Menu::Setting::updateAssets(){
+    const unsigned int tileSize = parent->_tileSize;
+    const unsigned int menux = parent->_menux;
+    const Vector2f scale((float)tileSize/SPRITETILESIZE, (float)tileSize/SPRITETILESIZE);
 
-    const Vector2f scale((float)TILESIZE/SPRITETILESIZE, (float)TILESIZE/SPRITETILESIZE);
+    nameText.setCharacterSize(tileSize/2.);
+    nameText.setPosition(menux+tileSize/2., (1.7+yindex)*tileSize);
     if (isInt){
-        // arrows
-        const IntRect arrowUpRect(6*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE);
-        const IntRect arrowDownRect(5*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE);
-        arrowUp = Sprite(*parent->_appspritesheet, arrowUpRect);
         arrowUp.setScale(scale);
-        arrowDown = Sprite(*parent->_appspritesheet, arrowDownRect);
+        arrowUp.setPosition(menux+tileSize*7.7, (1.5+yindex)*tileSize);
         arrowDown.setScale(scale);
+        arrowDown.setPosition(menux+tileSize*6, (1.5+yindex)*tileSize);
+        valueText.setCharacterSize(tileSize/2.);
     } else {
-        // checkboxes
-        const IntRect checkboxFalseRect(3*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE);
-        const IntRect checkboxTrueRect(4*SPRITETILESIZE, 3*SPRITETILESIZE, SPRITETILESIZE, SPRITETILESIZE);
-        checkboxTrue = Sprite(*parent->_appspritesheet, checkboxTrueRect);
         checkboxTrue.setScale(scale);
-        checkboxFalse = Sprite(*parent->_appspritesheet, checkboxFalseRect);
+        checkboxTrue.setPosition(menux+tileSize*7.5, (1.5+yindex)*tileSize);
         checkboxFalse.setScale(scale);
+        checkboxFalse.setPosition(menux+tileSize*7.5, (1.5+yindex)*tileSize);
     }
 }

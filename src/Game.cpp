@@ -255,16 +255,11 @@ void Game::_loadTileSprites(){
     _tilespritesheet.loadFromMemory(GAMESPRITESHEETFILE, sizeof(GAMESPRITESHEETFILE));
     _tilespritesheet.setSmooth(false);
 
-    const float scale = (float)TILESIZE / SPRITETILESIZE;
     // load sprites
     Sprite unopenedSprite(_tilespritesheet, IntRect(0, 0, 16, 16));
-    unopenedSprite.setScale(scale, scale);
     Sprite flaggedSprite(_tilespritesheet, IntRect(16, 0, 16, 16));
-    flaggedSprite.setScale(scale, scale);
     Sprite revealbombSprite(_tilespritesheet, IntRect(48, 0, 16, 16));
-    revealbombSprite.setScale(scale, scale);
     Sprite xbombSprite(_tilespritesheet, IntRect(16, 16, 16, 16));
-    xbombSprite.setScale(scale, scale);
     Sprite openedSprite[] = { Sprite(_tilespritesheet, IntRect(32, 16, 16, 16)),
                               Sprite(_tilespritesheet, IntRect(48, 16, 16, 16)),
                               Sprite(_tilespritesheet, IntRect(0, 32, 16, 16)),
@@ -274,10 +269,7 @@ void Game::_loadTileSprites(){
                               Sprite(_tilespritesheet, IntRect(0, 48, 16, 16)),
                               Sprite(_tilespritesheet, IntRect(16, 48, 16, 16)),
                               Sprite(_tilespritesheet, IntRect(32, 48, 16, 16)),
-                              Sprite(_tilespritesheet, IntRect(0, 16, 16, 16))   };
-    for (unsigned int i = 0; i < 10; i++){
-        openedSprite[i].setScale(scale, scale);
-    }
+                              Sprite(_tilespritesheet, IntRect(0, 16, 16, 16))};
 
     // initialize tiles
     int adjacentBombCount;
@@ -285,8 +277,8 @@ void Game::_loadTileSprites(){
     for (unsigned int y = 0; y < _height; y++){
         for (unsigned int x = 0; x < _width; x++){
 
-            tilex = TILESIZE*x;
-            tiley = TILESIZE*y;
+            tilex = SPRITETILESIZE*x;
+            tiley = SPRITETILESIZE*y;
 
             unopenedSprite.setPosition(tilex, tiley);
             flaggedSprite.setPosition(tilex, tiley);

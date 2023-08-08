@@ -42,18 +42,17 @@ class App {
 
         // window
         sf::RenderWindow* _window;
-        unsigned int _windowWidth;
-        unsigned int _windowHeight;
-        unsigned int _minWindowWidth;
-        unsigned int _minWindowHeight;
+        unsigned int _windowWidth, _windowHeight;
+        unsigned int _minWindowWidth, _minWindowHeight;
+        void _boundWindowSize();
 
         // board
         int _minBoardx, _maxBoardx, _minBoardy, _maxBoardy;
         int _boardx, _boardy;
         float _boardTileSize;
-        void _updateBoardRestrictions();
+        void _updateBoardBounds();
         void _resetBoardView();
-        void _keepBoardInView();
+        void _boundBoardView();
 
         // graphics
         sf::RectangleShape _background;
@@ -61,16 +60,17 @@ class App {
         sf::Sprite _tl, _t, _tr, _l, _m, _r, _bl, _b, _br, _tlg, _tg, _trg, _lg, _rg, _blg, _bg, _brg;
         sf::Sprite _happyFaceSprite, _coolFaceSprite, _sadFaceSprite;
         sf::Sprite _digitSprites[6][10];
+        sf::RectangleShape _backgroundDim;
         void _loadAssets();
-        void _updateSpriteLocations();
+        void _updateAssets();
         void _drawBorder();
 
         // menu
-        bool _menuOpen;
         Menu* _menu;
-        sf::RectangleShape _backgroundDim;
+        bool _menuOpen;
         void _boundMenuOptions();
         // menu options
+        unsigned int _tileSizeFactor;
         bool _zoomEnabled;
         bool _chordingEnabled;
         unsigned int _nextGameWidth;

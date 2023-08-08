@@ -12,7 +12,7 @@ class Menu {
         Menu(sf::Texture *appSpriteSheet);
 
         // draw
-        void draw(sf::RenderWindow& window, unsigned int windowWidth);
+        void draw(sf::RenderWindow& window);
 
         // click
         bool click(const sf::Event::MouseButtonEvent mouse);
@@ -21,31 +21,38 @@ class Menu {
         void addBoolItem(bool *setting, const std::string name);
         void addIntItem(unsigned int *setting, const std::string name);
 
-        // get menu bounds
-        sf::IntRect getBounds(const unsigned int windowWidth) const;
+        // get menu box bounds
+        sf::IntRect getBounds() const;
+
+        // update assets
+        void updateAssets(const unsigned int tileSize, const unsigned int windowWidth);
 
     private:
 
         struct Setting {
             // constructor
-            Setting(Menu *parent, const std::string name, const bool isInt, bool *boolSetting, unsigned int *intSetting);
+            Setting(Menu *parent, const unsigned int yindex, const std::string name, const bool isInt, bool *boolSetting, unsigned int *intSetting);
             // data members
             Menu* parent;
+            unsigned int yindex;
             std::string name;
             bool isInt;
             bool *bSetting;
             unsigned int *iSetting;
             // draw
-            void draw(sf::RenderWindow& window, unsigned int menux, unsigned int yindex);
+            void draw(sf::RenderWindow& window);
             // click
             bool checkClick(const sf::Event::MouseButtonEvent& mouse);
             // assets
             sf::Sprite checkboxTrue, checkboxFalse, arrowUp, arrowDown;
-            sf::Text text;
-            void loadAssets();
+            sf::Text nameText, valueText;
+            void updateAssets();
         };
 
         unsigned int _width, _height;
+        unsigned int _tileSize;
+        unsigned int _menux;
+        unsigned int _yindexCount;
         std::vector<Setting> _settings;
 
         // assets
