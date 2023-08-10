@@ -52,7 +52,7 @@ class Menu {
         unsigned int _width, _height;
         unsigned int _tileSize;
         unsigned int _menux;
-        unsigned int _yindexCount;
+        unsigned int _settingCount;
         std::vector<Setting> _settings;
 
         // assets

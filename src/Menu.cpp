@@ -13,11 +13,11 @@ using namespace std;
 
 
 Menu::Menu(Texture *appSpriteSheet){
-    _height = 450;
     _width = 0;
+    _height = 2*SPRITETILESIZE;
     _tileSize = SPRITETILESIZE;
     _menux = 0;
-    _yindexCount = 0;
+    _settingCount = 0;
     _appspritesheet = appSpriteSheet;
     _loadAssets();
 }
@@ -25,12 +25,10 @@ Menu::Menu(Texture *appSpriteSheet){
 
 
 void Menu::draw(RenderWindow& window){
-    const unsigned int width = _tileSize*9;
-
     // background
     for (unsigned int y = 0; y < _height-_tileSize; y += _tileSize){
         // middle area
-        for (unsigned int x = _menux+_tileSize; x < _menux+width-_tileSize; x += _tileSize){
+        for (unsigned int x = _menux+_tileSize; x < _menux+_width-_tileSize; x += _tileSize){
             _m.setPosition(x, y);
             window.draw(_m);
         }
@@ -38,18 +36,18 @@ void Menu::draw(RenderWindow& window){
         _l.setPosition(_menux, y);
         window.draw(_l);
         // right edge
-        _r.setPosition(_menux+width-_tileSize, y);
+        _r.setPosition(_menux+_width-_tileSize, y);
         window.draw(_r);
     }
     // bottom edge
-    for (unsigned int x = _menux+_tileSize; x < _menux+width-_tileSize; x += _tileSize){
+    for (unsigned int x = _menux+_tileSize; x < _menux+_width-_tileSize; x += _tileSize){
         _b.setPosition(x, _height-_tileSize);
         window.draw(_b);
     }
     // corners
     _bl.setPosition(_menux, _height-_tileSize);
     window.draw(_bl);
-    _br.setPosition(_menux+width-_tileSize, _height-_tileSize);
+    _br.setPosition(_menux+_width-_tileSize, _height-_tileSize);
     window.draw(_br);
 
     // title text
@@ -57,7 +55,7 @@ void Menu::draw(RenderWindow& window){
     window.draw(_titleText);
 
     // settings
-    for (unsigned int i = 0; i < _settings.size(); i++){
+    for (unsigned int i = 0; i < _settingCount; i++){
         _settings[i].draw(window);
     }
 
@@ -81,14 +79,14 @@ bool Menu::click(const Event::MouseButtonEvent mouse){
 
 
 void Menu::addIntItem(unsigned int *setting, const std::string name){
-    _settings.push_back(Setting(this, _yindexCount, name, true, nullptr, setting));
-    _yindexCount++;
+    _settings.push_back(Setting(this, _settingCount, name, true, nullptr, setting));
+    _settingCount++;
 }
 
 
 void Menu::addBoolItem(bool *setting, const std::string name){
-    _settings.push_back(Setting(this, _yindexCount, name, false, setting, nullptr));
-    _yindexCount++;
+    _settings.push_back(Setting(this, _settingCount, name, false, setting, nullptr));
+    _settingCount++;
 }
 
 
@@ -101,6 +99,7 @@ IntRect Menu::getBounds() const {
 
 void Menu::updateAssets(const unsigned int tileSize, const unsigned int windowWidth){
     _tileSize = tileSize;
+    _height = _tileSize*(2+_settingCount);
     _width = _tileSize*9;
     _menux = (windowWidth/2.) - (_width/2.);
 
@@ -113,7 +112,7 @@ void Menu::updateAssets(const unsigned int tileSize, const unsigned int windowWi
     _br.setScale(scale);
     _titleText.setCharacterSize(_tileSize*3./4);
 
-    for (unsigned int i = 0; i < _settings.size(); i++){
+    for (unsigned int i = 0; i < _settingCount; i++){
         _settings[i].updateAssets();
     }
     return;
@@ -149,6 +148,7 @@ void Menu::_loadAssets(){
     _titleText.setFont(_font);
     _titleText.setFillColor(Color::Black);
     _titleText.setString("MENU:");
+
 }
 
 
