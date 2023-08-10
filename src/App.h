@@ -76,6 +76,7 @@ class App {
         unsigned int _nextGameWidth;
         unsigned int _nextGameHeight;
         unsigned int _nextNumBombs;
+        bool _autoOpeningEnabled;
 
         // mouse/panning
         bool _holding, _panning;

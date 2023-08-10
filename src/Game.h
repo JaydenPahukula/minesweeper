@@ -15,7 +15,7 @@ class Game {
     public:
     
         // constructor
-        Game(unsigned int width, unsigned int height, unsigned int numBombs, int seed = 0);
+        Game(const unsigned int width, const unsigned int height, const unsigned int numBombs, const bool autoOpen, const int seed = 0);
         // destructor
         ~Game();
 

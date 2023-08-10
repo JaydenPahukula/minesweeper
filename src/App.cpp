@@ -34,7 +34,7 @@ App::App(RenderWindow &window){
     _windowHeight = (DEFAULTGAMEHEIGHT+4)*defaultTileSize;
     _window->setSize(Vector2u(_windowWidth, _windowHeight));
     // create game
-    _game = new Game(_gameWidth, _gameHeight, _numBombs);
+    _game = new Game(_gameWidth, _gameHeight, _numBombs, false);
     // initialize board
     _boardx = SPRITETILESIZE;
     _boardy = SPRITETILESIZE*3;
@@ -66,6 +66,9 @@ App::App(RenderWindow &window){
     _menu->addIntItem(&_nextGameHeight, "Game height");
     _nextNumBombs = DEFAULTNUMBOMBS;
     _menu->addIntItem(&_nextNumBombs, "Number of bombs");
+    _autoOpeningEnabled = DEFAULTAUTOOPENING;
+    _menu->addBoolItem(&_autoOpeningEnabled, "Automatic opening");
+
     _menu->updateAssets(defaultTileSize, _windowWidth);
 
     // update all dynamic sprite locations
@@ -203,7 +206,12 @@ void App::mouseRelease(const Event::MouseButtonEvent mouse){
                 _currTime = 0;
                 _timerRunning = false;
                 // make new game
-                _game = new Game(_gameWidth, _gameHeight, _numBombs);
+                _game = new Game(_gameWidth, _gameHeight, _numBombs, _autoOpeningEnabled);
+                // start timer if auto opening is enabled
+                if (_autoOpeningEnabled){
+                    _startTime = time(0);
+                    _timerRunning = true;
+                }
                 _resetBoardView();
                 // draw new game
                 this->draw();

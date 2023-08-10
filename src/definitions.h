@@ -19,6 +19,7 @@
 #define DEFAULTGAMEWIDTH        10
 #define DEFAULTGAMEHEIGHT       10
 #define DEFAULTNUMBOMBS         8
+#define DEFAULTAUTOOPENING      false
 
 // settings bounds
 #define MAXTILESIZEFACTOR       14

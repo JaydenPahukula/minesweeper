@@ -15,7 +15,7 @@ using namespace std;
 
 
 
-Game::Game(unsigned int width, unsigned int height, unsigned int numBombs, int seed){
+Game::Game(const unsigned int width, const unsigned int height, const unsigned int numBombs, const bool autoOpen, const int seed){
 
     // initialize tile grid
     _gameOver = 0;
@@ -46,6 +46,20 @@ Game::Game(unsigned int width, unsigned int height, unsigned int numBombs, int s
 
     // init tiles
     _loadTileSprites();
+
+    if (autoOpen){
+        // find zero tile
+        unsigned int x, y;
+        do {
+            x = rand()%_width;
+            y = rand()%_height;
+        } while (_grid[y][x]->getIdentity() != 0);
+        // open
+        _revealTile(x, y);
+        // update game
+        _update();
+    }
+    
 }
 
 
