@@ -242,18 +242,21 @@ void App::_mouseRelease(const Event::MouseButtonEvent mouse){
             const unsigned int tileSize = 8*_tileSizeFactor;
             IntRect gameFeild(tileSize, 3*tileSize, (_windowWidth-2)*tileSize, (_windowHeight-4)*tileSize); 
             if (!_game->gameOver() && gameFeild.contains(mouse.x, mouse.y)){ 
-                // start timer if not already started
-                if (!_timerRunning){
-                    _startTime = time(0);
-                    _timerRunning = true;
-                }
                 // get transformed coords
                 Transform boardTransform = Transform().translate(_boardx, _boardy).scale(_boardTileSize/SPRITETILESIZE, _boardTileSize/SPRITETILESIZE);
                 Vector2f transformedMouse = boardTransform.getInverse().transformPoint(Vector2f(mouse.x, mouse.y));
                 int tilex = transformedMouse.x / SPRITETILESIZE;
                 int tiley = transformedMouse.y / SPRITETILESIZE;
-                // click
-                _game->click(mouse, tilex, tiley, _chordingEnabled);
+                // check if clicked on a tile
+                if (tilex >= 0 && tilex < (int)_gameWidth && tiley >= 0 && tiley < (int)_gameHeight){
+                    // click
+                    _game->click(mouse, tilex, tiley, _chordingEnabled);
+                    // start timer if not already started
+                    if (!_timerRunning){
+                        _startTime = time(0);
+                        _timerRunning = true;
+                    }
+                } 
             }
         }
         _holding = false;
