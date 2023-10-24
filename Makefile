@@ -3,7 +3,7 @@ SRC_FILES = src\App.cpp src\main.cpp src\Game.cpp src\Tile.cpp src\Menu.cpp
 
 OBJECTS = $(SRC_FILES:.cpp=.o)
 
-FLAGS = -Wall -g -std=c++11 -static-libgcc -static-libstdc++ -static -DSFML_STATIC
+FLAGS = -Wall -g -std=c++11 -static-libgcc -static-libstdc++ -static -DSFML_STATIC -mwindows
 
 INC_PATH = .\lib\SFML\include
 LIB_PATH = .\lib\SFML\lib
