@@ -3,22 +3,23 @@ SRC_FILES = src\App.cpp src\main.cpp src\Game.cpp src\Tile.cpp src\Menu.cpp
 
 OBJECTS = $(SRC_FILES:.cpp=.o)
 
-CFLAGS = -Wall -g -std=c++11 -static-libgcc -static-libstdc++ -static -mwindows
-SFML_FLAGS = -DSFML_STATIC
+FLAGS = -Wall -g -std=c++11 -static-libgcc -static-libstdc++ -static -DSFML_STATIC
 
 INC_PATH = .\lib\SFML\include
 LIB_PATH = .\lib\SFML\lib
 
 LIBS = sfml-graphics-s sfml-window-s sfml-system-s opengl32 freetype winmm gdi32
 
-
 all: $(TARGET)
 
+release: FLAGS += -mwindows
+release: all
+
 $(TARGET): $(OBJECTS)
-	g++ $^ -o $@ $(CFLAGS) $(SFML_FLAGS) -I$(INC_PATH) -L$(LIB_PATH) $(addprefix -l,$(LIBS))
+	g++ $^ -o $@ $(FLAGS) -I$(INC_PATH) -L$(LIB_PATH) $(addprefix -l,$(LIBS))
 
 .cpp.o:
-	g++ -o $@ -c $< $(CFLAGS) $(SFML_FLAGS) -I$(INC_PATH) -L$(LIB_PATH) $(addprefix -l,$(LIBS))
+	g++ -o $@ -c $< $(FLAGS) -I$(INC_PATH) -L$(LIB_PATH) $(addprefix -l,$(LIBS))
 
 clean:
 	del $(TARGET) $(OBJECTS)

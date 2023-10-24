@@ -20,13 +20,8 @@ class App {
         // draw the app
         void draw();
 
-        // event handlers
-        void resize(const sf::Event::SizeEvent newSize);
-        void zoom(const sf::Event::MouseWheelScrollEvent mouse);
-        void mouseClick(const sf::Event::MouseButtonEvent mouse);
-        void mouseRelease(const sf::Event::MouseButtonEvent mouse);
-        void mouseMove(const sf::Event::MouseMoveEvent mouse);
-        void keyPress(const sf::Event::KeyEvent key);
+        // event handler
+        void handleEvent(const sf::Event);
 
         // getters
         unsigned int windowWidth() const;
@@ -45,6 +40,14 @@ class App {
         unsigned int _windowWidth, _windowHeight;
         unsigned int _minWindowWidth, _minWindowHeight;
         void _boundWindowSize();
+
+        // event handlers
+        void _keyPress(const sf::Event::KeyEvent key);
+        void _mouseClick(const sf::Event::MouseButtonEvent mouse);
+        void _mouseMove(const sf::Event::MouseMoveEvent mouse);
+        void _mouseRelease(const sf::Event::MouseButtonEvent mouse);
+        void _resize(const sf::Event::SizeEvent newSize);
+        void _zoom(const sf::Event::MouseWheelScrollEvent mouse);
 
         // board
         int _minBoardx, _maxBoardx, _minBoardy, _maxBoardy;

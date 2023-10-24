@@ -34,21 +34,7 @@ int main() {
 
         // handle events
         while(window.pollEvent(event)) {
-            if(event.type == Event::MouseButtonPressed){            // mouse clicked
-                app.mouseClick(event.mouseButton);
-            } else if(event.type == Event::MouseButtonReleased){    // mouse released
-                app.mouseRelease(event.mouseButton);
-            } else if(event.type == Event::MouseMoved){             // mouse moved
-                app.mouseMove(event.mouseMove);
-            } else if(event.type == Event::MouseWheelScrolled){     // mouse scrolled
-                app.zoom(event.mouseWheelScroll);
-            } else if(event.type == Event::KeyPressed){             // key pressed
-                app.keyPress(event.key);
-            } else if(event.type == Event::Resized){                // window resized
-                app.resize(event.size);
-            } else if(event.type == Event::Closed){                 // window closed
-                window.close();
-            }
+            app.handleEvent(event);
         }
     }
 

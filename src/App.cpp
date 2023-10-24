@@ -134,41 +134,42 @@ void App::draw(){
 
 
 
-void App::resize(const Event::SizeEvent newSize){
-    // resize window
-    _windowWidth = newSize.width;
-    _windowHeight = newSize.height;
-    // make sure size is valid
-    _boundWindowSize();
-    // make sure board is still in view
-    if (!_zoomEnabled) _resetBoardView();
-    _boundBoardView();
-    // update sprite locations
-    _updateAssets();
-    return;
+void App::handleEvent(const Event e){
+    if(e.type == Event::MouseButtonPressed){            // mouse clicked
+        _mouseClick(e.mouseButton);
+    } else if(e.type == Event::MouseButtonReleased){    // mouse released
+        _mouseRelease(e.mouseButton);
+    } else if(e.type == Event::MouseMoved){             // mouse moved
+        _mouseMove(e.mouseMove);
+    } else if(e.type == Event::MouseWheelScrolled){     // mouse scrolled
+        _zoom(e.mouseWheelScroll);
+    } else if(e.type == Event::KeyPressed){             // key pressed
+        _keyPress(e.key);
+    } else if(e.type == Event::Resized){                // window resized
+        _resize(e.size);
+    } else if(e.type == Event::Closed){                 // window closed
+        _window->close();
+    }
 }
 
 
+unsigned int App::windowWidth() const { return _windowWidth; }
+unsigned int App::windowHeight() const { return _windowHeight; }
 
-void App::zoom(const Event::MouseWheelScrollEvent mouse){
-    if (_zoomEnabled){
-        // check that mouse is on the board
-        if (mouse.x < (int)_boardx || mouse.x > _boardx + _boardTileSize*_gameWidth) return;
-        if (mouse.y < (int)_boardy || mouse.y > _boardy + _boardTileSize*_gameHeight) return;
-        // zoom
-        unsigned int oldsize = _boardTileSize;
-        _boardTileSize *= 1 + mouse.delta*SCROLLSPEED/100;
-        _boardx -= (mouse.x-_boardx)*(_boardTileSize/oldsize - 1);
-        _boardy -= (mouse.y-_boardy)*(_boardTileSize/oldsize - 1);
-        // make sure board is still in view
-        _boundBoardView();
+
+
+
+
+void App::_keyPress(const Event::KeyEvent key){
+    if (key.code == 36){ // esc
+        _menuOpen = !_menuOpen;
     }
     return;
 }
 
 
 
-void App::mouseClick(const Event::MouseButtonEvent mouse){
+void App::_mouseClick(const Event::MouseButtonEvent mouse){
     if (_menuOpen){
         if (mouse.button == Mouse::Left && _menu->getBounds().contains(mouse.x, mouse.y)){
             if (_menu->click(mouse)){
@@ -192,7 +193,28 @@ void App::mouseClick(const Event::MouseButtonEvent mouse){
 
 
 
-void App::mouseRelease(const Event::MouseButtonEvent mouse){
+void App::_mouseMove(const Event::MouseMoveEvent mouse){
+    if (_zoomEnabled){
+        if (_panning){
+            // move board
+            _boardx += mouse.x - _lastMousex;
+            _boardy += mouse.y - _lastMousey;
+            _boundBoardView();
+        } else if (_holding && sqrt(pow(mouse.x-_panx, 2) + pow(mouse.y-_pany, 2)) > MINPANDISTANCE){
+            _panning = true;
+            _boardx += mouse.x-_panx;
+            _boardy += mouse.y-_pany;
+            _boundBoardView();
+        }
+        _lastMousex = mouse.x;
+        _lastMousey = mouse.y;
+    }
+    return;
+}
+
+
+
+void App::_mouseRelease(const Event::MouseButtonEvent mouse){
     if (!_menuOpen){
         if (!_panning){
             // clicked on smiley face
@@ -242,38 +264,39 @@ void App::mouseRelease(const Event::MouseButtonEvent mouse){
 
 
 
-void App::mouseMove(const Event::MouseMoveEvent mouse){
+
+void App::_resize(const Event::SizeEvent newSize){
+    // resize window
+    _windowWidth = newSize.width;
+    _windowHeight = newSize.height;
+    // make sure size is valid
+    _boundWindowSize();
+    // make sure board is still in view
+    if (!_zoomEnabled) _resetBoardView();
+    _boundBoardView();
+    // update sprite locations
+    _updateAssets();
+    return;
+}
+
+
+
+
+void App::_zoom(const Event::MouseWheelScrollEvent mouse){
     if (_zoomEnabled){
-        if (_panning){
-            // move board
-            _boardx += mouse.x - _lastMousex;
-            _boardy += mouse.y - _lastMousey;
-            _boundBoardView();
-        } else if (_holding && sqrt(pow(mouse.x-_panx, 2) + pow(mouse.y-_pany, 2)) > MINPANDISTANCE){
-            _panning = true;
-            _boardx += mouse.x-_panx;
-            _boardy += mouse.y-_pany;
-            _boundBoardView();
-        }
-        _lastMousex = mouse.x;
-        _lastMousey = mouse.y;
+        // check that mouse is on the board
+        if (mouse.x < (int)_boardx || mouse.x > _boardx + _boardTileSize*_gameWidth) return;
+        if (mouse.y < (int)_boardy || mouse.y > _boardy + _boardTileSize*_gameHeight) return;
+        // zoom
+        unsigned int oldsize = _boardTileSize;
+        _boardTileSize *= 1 + mouse.delta*SCROLLSPEED/100;
+        _boardx -= (mouse.x-_boardx)*(_boardTileSize/oldsize - 1);
+        _boardy -= (mouse.y-_boardy)*(_boardTileSize/oldsize - 1);
+        // make sure board is still in view
+        _boundBoardView();
     }
     return;
 }
-
-
-
-void App::keyPress(const Event::KeyEvent key){
-    if (key.code == 36){ // esc
-        _menuOpen = !_menuOpen;
-    }
-    return;
-}
-
-
-
-unsigned int App::windowWidth() const { return _windowWidth; }
-unsigned int App::windowHeight() const { return _windowHeight; }
 
 
 
