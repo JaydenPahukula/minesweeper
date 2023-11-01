@@ -6,12 +6,6 @@ using namespace sf;
 
 
 Tile::Tile(){
-    this->reset();
-}
-
-
-void Tile::reset(){
-    // reset all values
     _identity = -1;
     _revealed = false;
     _flagged = false;

@@ -9,9 +9,6 @@ class Tile {
         // constructor
         Tile();
 
-        // reset the tile
-        void reset();
-
         // initialize the tile
         bool init(const int value);
         // initialze the tile's sprites
