@@ -129,9 +129,11 @@ void Game::click(const sf::Event::MouseButtonEvent mouse, unsigned int x, unsign
 
 
 
-
-unsigned int Game::gameOver() const { return _gameOver; }
+unsigned int Game::width() const { return _width; }
+unsigned int Game::height() const { return _height; }
+unsigned int Game::numBombs() const { return _numBombs; }
 unsigned int Game::numBombsRemaining() const { return _numBombsRemaining; }
+unsigned int Game::gameOver() const { return _gameOver; }
 
 
 

@@ -26,8 +26,11 @@ class Game {
         void click(const sf::Event::MouseButtonEvent mouse, unsigned int x, unsigned int y, bool chordingEnabled);
 
         // getters
-        unsigned int gameOver() const;
+        unsigned int width() const;
+        unsigned int height() const;
+        unsigned int numBombs() const;
         unsigned int numBombsRemaining() const;
+        unsigned int gameOver() const;
 
     private:
 

@@ -22,22 +22,14 @@ class App {
 
         // event handler
         void handleEvent(const sf::Event);
-
-        // getters
-        unsigned int windowWidth() const;
-        unsigned int windowHeight() const;
     
     private:
         
         // game
         Game* _game;
-        unsigned int _gameWidth;
-        unsigned int _gameHeight;
-        unsigned int _numBombs;
 
         // window
         sf::RenderWindow* _window;
-        unsigned int _windowWidth, _windowHeight;
         unsigned int _minWindowWidth, _minWindowHeight;
         void _boundWindowSize();
 
