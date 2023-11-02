@@ -24,7 +24,7 @@ App::App(RenderWindow &window){
     srand(time(0));
 
     // create game
-    _game = new Game(DEFAULTGAMEWIDTH, DEFAULTGAMEHEIGHT, DEFAULTNUMBOMBS, false);
+    _game = new Game(DEFAULTGAMEWIDTH, DEFAULTGAMEHEIGHT, DEFAULTNUMBOMBS, DEFAULTAUTOOPENING);
 
     // initialize window
     _window = &window;
