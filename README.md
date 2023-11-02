@@ -6,7 +6,7 @@ This is the classic game of Minesweeper, written in C++ using SFML.
 
 Click on the smiley face to start a new game. The playing field starts as a grid of unopened tiles, left click on a tile to reveal it. If the tile shows a number, there are that many mines in the surrounding 8 tiles. You can right click a tile to flag it if you think there is a mine there. 
 
-The goal of the game is to reveal all tiles without mines, or flag all the mines. Be carefule, if you reveal a tile with a mine, it is game over!
+The goal of the game is to reveal all tiles without mines, or flag all the mines. Be careful, if you reveal a tile with a mine, it is game over!
 
 ## Menu
 
