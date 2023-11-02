@@ -12,6 +12,7 @@ using namespace sf;
 #include <math.h>
 using namespace std;
 
+#include <cstdlib>
 #include <ctime>
 
 
