@@ -3,6 +3,7 @@
 #include "App.h"
 #include "Game.h"
 #include "Menu.h"
+#include "Timer.h"
 
 #include APPSPRITESHEETPATH
 
@@ -40,9 +41,7 @@ App::App(RenderWindow &window){
     _holding = false;
     _panning = false;
     // timer
-    _timerRunning = false;
-    _currTime = 0;
-    _startTime = 0;
+    _timer = Timer();
 
     // load assets
     _loadAssets();
@@ -86,8 +85,8 @@ void App::draw(){
     unsigned int isGameOver = _game->gameOver();
     unsigned int numBombsRemaining = _game->numBombsRemaining();
     // update timer
-    if (isGameOver) _timerRunning = false;
-    if (_timerRunning) _currTime = time(0) - _startTime;
+    if (isGameOver) _timer.stop();
+    int seconds = _timer.seconds() % 1000;
 
     // draw background rectangle
     _window->draw(_background);
@@ -114,9 +113,9 @@ void App::draw(){
     _window->draw(_digitSprites[2][numBombsRemaining%10]);
 
     // draw timer
-    _window->draw(_digitSprites[3][(_currTime/100)%10]);
-    _window->draw(_digitSprites[4][(_currTime/10)%10]);
-    _window->draw(_digitSprites[5][_currTime%10]);
+    _window->draw(_digitSprites[3][(seconds/100)%10]);
+    _window->draw(_digitSprites[4][(seconds/10)%10]);
+    _window->draw(_digitSprites[5][seconds%10]);
 
     if (_menuOpen){
         // dim background
@@ -212,17 +211,13 @@ void App::_mouseRelease(const Event::MouseButtonEvent mouse){
                 // delete old game
                 delete _game;
                 // reset timer
-                _currTime = 0;
-                _timerRunning = false;
+                _timer.reset();
                 // make new game
                 _game = new Game(_nextGameWidth, _nextGameHeight, _nextNumBombs, _autoOpeningEnabled);
                 // start timer if auto opening is enabled
-                if (_autoOpeningEnabled){
-                    _startTime = time(0);
-                    _timerRunning = true;
-                }
-                _resetBoardView();
+                if (_autoOpeningEnabled) _timer.start();
                 // draw new game
+                _resetBoardView();
                 this->draw();
             }
             // clicked on game feild
@@ -239,10 +234,7 @@ void App::_mouseRelease(const Event::MouseButtonEvent mouse){
                     // click
                     _game->click(mouse, tilex, tiley, _chordingEnabled);
                     // start timer if not already started
-                    if (!_timerRunning){
-                        _startTime = time(0);
-                        _timerRunning = true;
-                    }
+                    _timer.start();
                 } 
             }
         }

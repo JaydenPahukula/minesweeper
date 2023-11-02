@@ -3,10 +3,9 @@
 
 #include "Game.h"
 #include "Menu.h"
+#include "Timer.h"
 
 #include <SFML/Graphics.hpp>
-
-#include <ctime>
 
 
 class App {
@@ -79,8 +78,7 @@ class App {
         int _lastMousex, _lastMousey;
 
         // timer
-        bool _timerRunning;
-        time_t _startTime, _currTime;
+        Timer _timer;
 
 };
 

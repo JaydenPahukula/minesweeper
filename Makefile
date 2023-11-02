@@ -1,5 +1,5 @@
 TARGET = minesweeper.exe
-SRC_FILES = src\App.cpp src\main.cpp src\Game.cpp src\Tile.cpp src\Menu.cpp
+SRC_FILES = src\App.cpp src\main.cpp src\Game.cpp src\Tile.cpp src\Menu.cpp src\Timer.cpp
 
 OBJECTS = $(SRC_FILES:.cpp=.o)
 
@@ -26,9 +26,10 @@ clean:
 
 # DEPENDENCIES
 src/main.o: src/main.cpp src/definitions.h src/App.h
-src/App.o: src/App.cpp src/App.h src/definitions.h src/Game.h src/Menu.h
+src/App.o: src/App.cpp src/App.h src/definitions.h src/Game.h src/Menu.h src/Timer.h
 src/Menu.o: src/Menu.cpp src/definitions.h
 src/Game.o: src/Game.cpp src/Game.h src/definitions.h src/Tile.h
 src/Tile.o: src/Tile.cpp src/Tile.h src/definitions.h
+src/Timer.o: src/Timer.cpp src/Timer.h
 
 .PHONY: all clean
