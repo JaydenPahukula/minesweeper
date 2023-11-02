@@ -64,7 +64,6 @@ class App {
         bool _menuOpen;
         void _boundMenuOptions();
         // menu options
-        unsigned int _tileSizeFactor;
         bool _zoomEnabled;
         bool _chordingEnabled;
         unsigned int _nextGameWidth;

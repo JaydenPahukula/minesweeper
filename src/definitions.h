@@ -7,13 +7,13 @@
 #define FONTPATH                "../assets/pixelmix/font.h"
 
 #define SPRITETILESIZE          16
+#define TILESIZE                40
 
 #define SCROLLSPEED             16
 
 #define MINPANDISTANCE          50
 
 // default settings 
-#define DEFAULTTILESIZEFACTOR   5
 #define DEFAULTZOOMENABLED      false
 #define DEFAULTCHORDING         true
 #define DEFAULTGAMEWIDTH        10
@@ -22,8 +22,6 @@
 #define DEFAULTAUTOOPENING      false
 
 // settings bounds
-#define MAXTILESIZEFACTOR       14
-#define MINTILESIZEFACTOR       2
 #define MAXGAMEWIDTH            64
 #define MINGAMEWIDTH            8
 #define MAXGAMEHEIGHT           64

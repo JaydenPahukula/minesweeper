@@ -12,7 +12,6 @@ The goal of the game is to reveal all tiles without mines, or flag all the mines
 
 Press `esc` to open/close the menu. These are the options available:
 
-- App size - Change the scale of the entire app
 - Zoom enabled - Enable/disable zooming (scroll to zoom, click and drag to pan)
 - Chording enabled - Enable/disable chording with left-click (see [chording](https://en.wikipedia.org/wiki/Chording#Minesweeper_tactic))
 - Game width/height* - Change the width/height of the playing field

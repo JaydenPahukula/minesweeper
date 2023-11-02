@@ -27,10 +27,9 @@ App::App(RenderWindow &window){
     _game = new Game(DEFAULTGAMEWIDTH, DEFAULTGAMEHEIGHT, DEFAULTNUMBOMBS, false);
 
     // initialize window
-    const unsigned int defaultTileSize = 8*DEFAULTTILESIZEFACTOR;
     _window = &window;
-    _minWindowWidth = (DEFAULTGAMEWIDTH+2)*defaultTileSize;
-    _minWindowHeight = (DEFAULTGAMEHEIGHT+4)*defaultTileSize;
+    _minWindowWidth = (DEFAULTGAMEWIDTH+2)*TILESIZE;
+    _minWindowHeight = (DEFAULTGAMEHEIGHT+4)*TILESIZE;
     _window->setSize(Vector2u(_minWindowWidth, _minWindowHeight));
     // initialize board
     _boardx = SPRITETILESIZE;
@@ -49,8 +48,6 @@ App::App(RenderWindow &window){
     // initialize menu
     _menu = new Menu(&_appspritesheet);
     _menuOpen = false;
-    _tileSizeFactor = DEFAULTTILESIZEFACTOR;
-    _menu->addIntItem(&_tileSizeFactor, "App size");
     _zoomEnabled = DEFAULTZOOMENABLED;
     _menu->addBoolItem(&_zoomEnabled, "Zoom enabled");
     _chordingEnabled = DEFAULTCHORDING;
@@ -64,7 +61,7 @@ App::App(RenderWindow &window){
     _autoOpeningEnabled = DEFAULTAUTOOPENING;
     _menu->addBoolItem(&_autoOpeningEnabled, "Automatic opening");
 
-    _menu->updateAssets(defaultTileSize, _window->getSize().y);
+    _menu->updateAssets(TILESIZE, _window->getSize().y);
 
     // update all dynamic sprite locations
     _updateAssets();
@@ -221,8 +218,7 @@ void App::_mouseRelease(const Event::MouseButtonEvent mouse){
                 this->draw();
             }
             // clicked on game feild
-            const unsigned int tileSize = 8*_tileSizeFactor;
-            IntRect gameFeild(tileSize, 3*tileSize, (_window->getSize().x-2)*tileSize, (_window->getSize().y-4)*tileSize); 
+            IntRect gameFeild(TILESIZE, 3*TILESIZE, (_window->getSize().x-2)*TILESIZE, (_window->getSize().y-4)*TILESIZE); 
             if (!_game->gameOver() && gameFeild.contains(mouse.x, mouse.y)){ 
                 // get transformed coords
                 Transform boardTransform = Transform().translate(_boardx, _boardy).scale(_boardTileSize/SPRITETILESIZE, _boardTileSize/SPRITETILESIZE);
@@ -282,9 +278,8 @@ void App::_zoom(const Event::MouseWheelScrollEvent mouse){
 
 
 void App::_boundWindowSize(){
-    const unsigned int tileSize = 8*_tileSizeFactor;
-    _minWindowWidth = (_game->width()+2)*tileSize;
-    _minWindowHeight = (_game->height()+4)*tileSize;
+    _minWindowWidth = (_game->width()+2)*TILESIZE;
+    _minWindowHeight = (_game->height()+4)*TILESIZE;
     Vector2u boundedSize(max(_window->getSize().x, _minWindowWidth), max(_window->getSize().y, _minWindowHeight));
     _window->setSize(boundedSize);
     _window->setView(View(Vector2f(_window->getSize().x/2., _window->getSize().y/2.), Vector2f(_window->getSize().x, _window->getSize().y)));
@@ -293,8 +288,7 @@ void App::_boundWindowSize(){
 
 
 void App::_updateAssets(){
-    const unsigned int tileSize = 8*_tileSizeFactor;
-    const Vector2f scale((float)tileSize/SPRITETILESIZE, (float)tileSize/SPRITETILESIZE);
+    const Vector2f scale((float)TILESIZE/SPRITETILESIZE, (float)TILESIZE/SPRITETILESIZE);
     // update background
     _background.setSize(Vector2f(_window->getSize().x, _window->getSize().y));
     // update background dim
@@ -319,51 +313,50 @@ void App::_updateAssets(){
     _brg.setScale(scale);
     // update faces
     _happyFaceSprite.setScale(scale);
-    _happyFaceSprite.setPosition(_window->getSize().x/2.-tileSize, tileSize/2.);
+    _happyFaceSprite.setPosition(_window->getSize().x/2.-TILESIZE, TILESIZE/2.);
     _coolFaceSprite.setScale(scale);
-    _coolFaceSprite.setPosition(_window->getSize().x/2.-tileSize, tileSize/2.);
+    _coolFaceSprite.setPosition(_window->getSize().x/2.-TILESIZE, TILESIZE/2.);
     _sadFaceSprite.setScale(scale);
-    _sadFaceSprite.setPosition(_window->getSize().x/2.-tileSize, tileSize/2.);
+    _sadFaceSprite.setPosition(_window->getSize().x/2.-TILESIZE, TILESIZE/2.);
     // update digits
     for (int digit = 0; digit < 10; digit++){
         _digitSprites[0][digit].setScale(scale);
-        _digitSprites[0][digit].setPosition(tileSize*(3./4), tileSize*(3./4));
+        _digitSprites[0][digit].setPosition(TILESIZE*(3./4), TILESIZE*(3./4));
         _digitSprites[1][digit].setScale(scale);
-        _digitSprites[1][digit].setPosition(tileSize*(7./4), tileSize*(3./4));
+        _digitSprites[1][digit].setPosition(TILESIZE*(7./4), TILESIZE*(3./4));
         _digitSprites[2][digit].setScale(scale);
-        _digitSprites[2][digit].setPosition(tileSize*(11./4), tileSize*(3./4));
+        _digitSprites[2][digit].setPosition(TILESIZE*(11./4), TILESIZE*(3./4));
         _digitSprites[3][digit].setScale(scale);
-        _digitSprites[3][digit].setPosition(_window->getSize().x-tileSize*(15./4), tileSize*(3./4));
+        _digitSprites[3][digit].setPosition(_window->getSize().x-TILESIZE*(15./4), TILESIZE*(3./4));
         _digitSprites[4][digit].setScale(scale);
-        _digitSprites[4][digit].setPosition(_window->getSize().x-tileSize*(11./4), tileSize*(3./4));
+        _digitSprites[4][digit].setPosition(_window->getSize().x-TILESIZE*(11./4), TILESIZE*(3./4));
         _digitSprites[5][digit].setScale(scale);
-        _digitSprites[5][digit].setPosition(_window->getSize().x-tileSize*(7./4), tileSize*(3./4));
+        _digitSprites[5][digit].setPosition(_window->getSize().x-TILESIZE*(7./4), TILESIZE*(3./4));
     }
     // update menu
-    _menu->updateAssets(tileSize, _window->getSize().x);
+    _menu->updateAssets(TILESIZE, _window->getSize().x);
     return;
 }
 
 
 void App::_updateBoardBounds(){
-    const unsigned int tileSize = 8*_tileSizeFactor;
     const float boardRatio = (float)_game->width() / (float)_game->height();
-    const float windowRatio = (float)(_window->getSize().x-2*tileSize) / (float)(_window->getSize().y-4*tileSize);
+    const float windowRatio = (float)(_window->getSize().x-2*TILESIZE) / (float)(_window->getSize().y-4*TILESIZE);
     if (windowRatio > boardRatio){ // wide
-        _minBoardx = (_window->getSize().x/2) - ((_window->getSize().y-4*tileSize) * boardRatio / 2.);
-        _maxBoardx = (_window->getSize().x/2) + ((_window->getSize().y-4*tileSize) * boardRatio / 2.);
-        _minBoardy = tileSize*3;
-        _maxBoardy = _window->getSize().y-tileSize;
+        _minBoardx = (_window->getSize().x/2) - ((_window->getSize().y-4*TILESIZE) * boardRatio / 2.);
+        _maxBoardx = (_window->getSize().x/2) + ((_window->getSize().y-4*TILESIZE) * boardRatio / 2.);
+        _minBoardy = TILESIZE*3;
+        _maxBoardy = _window->getSize().y-TILESIZE;
     } else if (windowRatio < boardRatio){ // tall
-        _minBoardx = tileSize;
-        _maxBoardx = _window->getSize().x-tileSize;
-        _minBoardy = ((_window->getSize().y+tileSize)/2) - ((_window->getSize().x-2*tileSize) / boardRatio / 2.);
-        _maxBoardy = ((_window->getSize().y+tileSize)/2) + ((_window->getSize().x-2*tileSize) / boardRatio / 2.);
+        _minBoardx = TILESIZE;
+        _maxBoardx = _window->getSize().x-TILESIZE;
+        _minBoardy = ((_window->getSize().y+TILESIZE)/2) - ((_window->getSize().x-2*TILESIZE) / boardRatio / 2.);
+        _maxBoardy = ((_window->getSize().y+TILESIZE)/2) + ((_window->getSize().x-2*TILESIZE) / boardRatio / 2.);
     } else { // square
-        _minBoardx = tileSize;
-        _maxBoardx = _window->getSize().x-tileSize;
-        _minBoardy = tileSize*3;
-        _maxBoardy = _window->getSize().y-tileSize;
+        _minBoardx = TILESIZE;
+        _maxBoardx = _window->getSize().x-TILESIZE;
+        _minBoardy = TILESIZE*3;
+        _maxBoardy = _window->getSize().y-TILESIZE;
     }
     return;
 }
@@ -388,8 +381,6 @@ void App::_boundBoardView(){
 
 
 void App::_boundMenuOptions(){
-    _tileSizeFactor = max(_tileSizeFactor, (unsigned int)MINTILESIZEFACTOR);
-    _tileSizeFactor = min(_tileSizeFactor, (unsigned int)MAXTILESIZEFACTOR);
     _nextGameWidth = max(_nextGameWidth, (unsigned int)MINGAMEWIDTH);
     _nextGameWidth = min(_nextGameWidth, (unsigned int)MAXGAMEWIDTH);
     _nextGameHeight = max(_nextGameHeight, (unsigned int)MINGAMEHEIGHT);
@@ -401,60 +392,59 @@ void App::_boundMenuOptions(){
 
 
 void App::_drawBorder(){
-    const unsigned int tileSize = 8*_tileSizeFactor;
     // top left corner
     _tl.setPosition(0, 0);
     _window->draw(_tl);
     // top row
-    for (unsigned int x = tileSize; x < _window->getSize().x-tileSize; x += tileSize){
+    for (unsigned int x = TILESIZE; x < _window->getSize().x-TILESIZE; x += TILESIZE){
         _t.setPosition(x, 0);
         _window->draw(_t);
     }
     // top right corner
-    _tr.setPosition(_window->getSize().x-tileSize, 0);
+    _tr.setPosition(_window->getSize().x-TILESIZE, 0);
     _window->draw(_tr);
     // top left side
-    _l.setPosition(0, tileSize);
+    _l.setPosition(0, TILESIZE);
     _window->draw(_l);
     // top middle row
-    for (unsigned int x = tileSize; x < _window->getSize().x-tileSize; x += tileSize){
-        _m.setPosition(x, tileSize);
+    for (unsigned int x = TILESIZE; x < _window->getSize().x-TILESIZE; x += TILESIZE){
+        _m.setPosition(x, TILESIZE);
         _window->draw(_m);
     }
     // top right side
-    _r.setPosition(_window->getSize().x-tileSize, tileSize);
+    _r.setPosition(_window->getSize().x-TILESIZE, TILESIZE);
     _window->draw(_r);
     // top left grid corner
-    _tlg.setPosition(0, tileSize*2);
+    _tlg.setPosition(0, TILESIZE*2);
     _window->draw(_tlg);
     // top grid row
-    for (unsigned int x = tileSize; x < _window->getSize().x-tileSize; x += tileSize){
-        _tg.setPosition(x, tileSize*2);
+    for (unsigned int x = TILESIZE; x < _window->getSize().x-TILESIZE; x += TILESIZE){
+        _tg.setPosition(x, TILESIZE*2);
         _window->draw(_tg);
     }
     // top right grid corner
-    _trg.setPosition(_window->getSize().x-tileSize, tileSize*2);
+    _trg.setPosition(_window->getSize().x-TILESIZE, TILESIZE*2);
     _window->draw(_trg);
     // left grid edge
-    for (unsigned int y = tileSize*3; y < _window->getSize().y-tileSize; y += tileSize){
+    for (unsigned int y = TILESIZE*3; y < _window->getSize().y-TILESIZE; y += TILESIZE){
         _lg.setPosition(0, y);
         _window->draw(_lg);
     }
     // right grid edge
-    for (unsigned int y = tileSize*3; y < _window->getSize().y-tileSize; y += tileSize){
-        _rg.setPosition(_window->getSize().x-tileSize, y);
+    for (unsigned int y = TILESIZE*3; y < _window->getSize().y-TILESIZE; y += TILESIZE){
+        _rg.setPosition(_window->getSize().x-TILESIZE, y);
         _window->draw(_rg);
     }
     // bottom left grid corner
-    _blg.setPosition(0, _window->getSize().y-tileSize);
+    _blg.setPosition(0, _window->getSize().y-TILESIZE);
     _window->draw(_blg);
     // bottom grid row
-    for (unsigned int x = tileSize; x < _window->getSize().x-tileSize; x += tileSize){
-        _bg.setPosition(x, _window->getSize().y-tileSize);
+    for (unsigned int x = TILESIZE; x < _window->getSize().x-TILESIZE; x += TILESIZE){
+        _bg.setPosition(x, _window->getSize().y-TILESIZE);
         _window->draw(_bg);
     }
     // bottom right grid corner
-    _brg.setPosition(_window->getSize().x-tileSize, _window->getSize().y-tileSize);
+    _brg.setPosition(_window->getSize().x-TILESIZE, _window->getSize().y-TILESIZE);
     _window->draw(_brg);
 }
 
