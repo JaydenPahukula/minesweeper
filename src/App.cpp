@@ -408,7 +408,7 @@ void App::_boundMenuOptions(){
     _nextNumBombs = min(_nextNumBombs, _nextGameWidth*_nextGameHeight);
 }
 
-s
+
 void App::_drawBorder(){
     // top left corner
     _tl.setPosition(0, 0);
