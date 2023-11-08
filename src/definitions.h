@@ -13,6 +13,8 @@
 
 #define MINPANDISTANCE          50
 
+#define NUMCONFETTI             70
+
 // default settings 
 #define DEFAULTZOOMENABLED      false
 #define DEFAULTCHORDING         true

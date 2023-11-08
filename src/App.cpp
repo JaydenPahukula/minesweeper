@@ -4,6 +4,7 @@
 #include "Game.h"
 #include "Menu.h"
 #include "Timer.h"
+#include "Confetti.h"
 
 #include APPSPRITESHEETPATH
 
@@ -31,6 +32,7 @@ App::App(RenderWindow &window){
     _minWindowWidth = (DEFAULTGAMEWIDTH+2)*TILESIZE;
     _minWindowHeight = (DEFAULTGAMEHEIGHT+4)*TILESIZE;
     _window->setSize(Vector2u(_minWindowWidth, _minWindowHeight));
+
     // initialize board
     _boardx = SPRITETILESIZE;
     _boardy = SPRITETILESIZE*3;
@@ -39,8 +41,13 @@ App::App(RenderWindow &window){
     // panning
     _holding = false;
     _panning = false;
+
     // timer
     _timer = Timer();
+
+    // confetti
+    _confetti = ConfettiCannon();
+    _confettiLaunched = false;
 
     // load assets
     _loadAssets();
@@ -113,6 +120,15 @@ void App::draw(){
     _window->draw(_digitSprites[3][(seconds/100)%10]);
     _window->draw(_digitSprites[4][(seconds/10)%10]);
     _window->draw(_digitSprites[5][seconds%10]);
+
+    // draw confetti
+    if (isGameOver == 2){
+        if (!_confettiLaunched){
+            _confetti.launch(Vector2f(_window->getSize().x/2, -20));
+            _confettiLaunched = true;
+        }
+        _confetti.draw(*_window);
+    }
 
     if (_menuOpen){
         // dim background
@@ -209,6 +225,8 @@ void App::_mouseRelease(const Event::MouseButtonEvent mouse){
                 delete _game;
                 // reset timer
                 _timer.reset();
+                // reset confetti
+                _confettiLaunched = false;
                 // make new game
                 _game = new Game(_nextGameWidth, _nextGameHeight, _nextNumBombs, _autoOpeningEnabled);
                 // start timer if auto opening is enabled
@@ -390,7 +408,7 @@ void App::_boundMenuOptions(){
     _nextNumBombs = min(_nextNumBombs, _nextGameWidth*_nextGameHeight);
 }
 
-
+s
 void App::_drawBorder(){
     // top left corner
     _tl.setPosition(0, 0);

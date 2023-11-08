@@ -4,6 +4,7 @@
 #include "Game.h"
 #include "Menu.h"
 #include "Timer.h"
+#include "Confetti.h"
 
 #include <SFML/Graphics.hpp>
 
@@ -78,6 +79,10 @@ class App {
 
         // timer
         Timer _timer;
+
+        // confetti
+        ConfettiCannon _confetti;
+        bool _confettiLaunched;
 
 };
 
