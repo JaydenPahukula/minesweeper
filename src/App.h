@@ -13,15 +13,15 @@ class App {
     public:
 
         // constructor
-        App(sf::RenderWindow &window);
+        App();
         // destructor
         ~App();
 
-        // draw the app
+        // update/draw the app
         void draw();
 
-        // event handler
-        void handleEvent(const sf::Event);
+        // is app open
+        bool isOpen();
     
     private:
         
@@ -29,11 +29,13 @@ class App {
         Game* _game;
 
         // window
-        sf::RenderWindow* _window;
+        sf::RenderWindow _window;
+        sf::Image _icon;
         unsigned int _minWindowWidth, _minWindowHeight;
         void _boundWindowSize();
 
         // event handlers
+        void _handleEvent(const sf::Event e);
         void _keyPress(const sf::Event::KeyEvent key);
         void _mouseClick(const sf::Event::MouseButtonEvent mouse);
         void _mouseMove(const sf::Event::MouseMoveEvent mouse);

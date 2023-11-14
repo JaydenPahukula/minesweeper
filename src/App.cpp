@@ -7,6 +7,7 @@
 #include "Confetti.h"
 
 #include APPSPRITESHEETPATH
+#include ICONPATH
 
 #include <SFML/Graphics.hpp>
 using namespace sf;
@@ -19,7 +20,7 @@ using namespace std;
 
 
 
-App::App(RenderWindow &window){
+App::App(){
 
     // seed random
     srand(time(0));
@@ -28,15 +29,18 @@ App::App(RenderWindow &window){
     _game = new Game(DEFAULTGAMEWIDTH, DEFAULTGAMEHEIGHT, DEFAULTNUMBOMBS, DEFAULTAUTOOPENING);
 
     // initialize window
-    _window = &window;
     _minWindowWidth = (DEFAULTGAMEWIDTH+2)*TILESIZE;
     _minWindowHeight = (DEFAULTGAMEHEIGHT+4)*TILESIZE;
-    _window->setSize(Vector2u(_minWindowWidth, _minWindowHeight));
+    _window.create(VideoMode(_minWindowWidth, _minWindowHeight), "Minesweeper", Style::Default);
+    _window.setFramerateLimit(60);
+    // set window icon
+    _icon.loadFromMemory(ICONFILE, sizeof(ICONFILE));
+    _window.setIcon(_icon.getSize().x, _icon.getSize().y, _icon.getPixelsPtr());
 
     // initialize board
-    _boardx = SPRITETILESIZE;
-    _boardy = SPRITETILESIZE*3;
-    _boardTileSize =  SPRITETILESIZE;
+    _boardx = TILESIZE;
+    _boardy = TILESIZE*3;
+    _boardTileSize =  TILESIZE;
     
     // panning
     _holding = false;
@@ -68,7 +72,7 @@ App::App(RenderWindow &window){
     _autoOpeningEnabled = DEFAULTAUTOOPENING;
     _menu->addBoolItem(&_autoOpeningEnabled, "Automatic opening");
 
-    _menu->updateAssets(TILESIZE, _window->getSize().y);
+    _menu->updateAssets(TILESIZE, _window.getSize().y);
 
     // update all dynamic sprite locations
     _updateAssets();
@@ -84,65 +88,80 @@ App::~App(){
 
 
 void App::draw(){
-
-    // update values
+    
+    // handle events
+    Event event;
+    while (_window.pollEvent(event)){ _handleEvent(event); }
+    // update game values
     unsigned int isGameOver = _game->gameOver();
     unsigned int numBombsRemaining = _game->numBombsRemaining();
     // update timer
     if (isGameOver) _timer.stop();
     int seconds = _timer.seconds() % 1000;
 
+    // clear window
+    _window.clear();
+
     // draw background rectangle
-    _window->draw(_background);
+    _window.draw(_background);
 
     // draw game
     RenderStates boardState;
     boardState.transform = Transform().translate(_boardx, _boardy).scale(_boardTileSize/SPRITETILESIZE, _boardTileSize/SPRITETILESIZE);
-    _game->draw(*_window, boardState);
+    _game->draw(_window, boardState);
     
     // draw background border
     _drawBorder();
 
     // draw smiley face
     switch (isGameOver){
-        case 0: _window->draw(_happyFaceSprite); break;
-        case 1: _window->draw(_sadFaceSprite); break;
-        case 2: _window->draw(_coolFaceSprite); break;
+        case 0: _window.draw(_happyFaceSprite); break;
+        case 1: _window.draw(_sadFaceSprite); break;
+        case 2: _window.draw(_coolFaceSprite); break;
         default: break;
     }
 
     // draw bomb counter
-    _window->draw(_digitSprites[0][(numBombsRemaining/100)%10]);
-    _window->draw(_digitSprites[1][(numBombsRemaining/10)%10]);
-    _window->draw(_digitSprites[2][numBombsRemaining%10]);
+    _window.draw(_digitSprites[0][(numBombsRemaining/100)%10]);
+    _window.draw(_digitSprites[1][(numBombsRemaining/10)%10]);
+    _window.draw(_digitSprites[2][numBombsRemaining%10]);
 
     // draw timer
-    _window->draw(_digitSprites[3][(seconds/100)%10]);
-    _window->draw(_digitSprites[4][(seconds/10)%10]);
-    _window->draw(_digitSprites[5][seconds%10]);
+    _window.draw(_digitSprites[3][(seconds/100)%10]);
+    _window.draw(_digitSprites[4][(seconds/10)%10]);
+    _window.draw(_digitSprites[5][seconds%10]);
 
     // draw confetti
     if (isGameOver == 2){
         if (!_confettiLaunched){
-            _confetti.launch(Vector2f(_window->getSize().x/2, -20));
+            _confetti.launch(Vector2f(_window.getSize().x/2, -20));
             _confettiLaunched = true;
         }
-        _confetti.draw(*_window);
+        _confetti.draw(_window);
     }
 
     if (_menuOpen){
         // dim background
-        _window->draw(_backgroundDim);
+        _window.draw(_backgroundDim);
         // draw menu
-        _menu->draw(*_window);
+        _menu->draw(_window);
     }
+
+    // display everything
+    _window.display();
 
     return;
 }
 
 
 
-void App::handleEvent(const Event e){
+bool App::isOpen(){
+    return _window.isOpen();
+}
+
+
+
+void App::_handleEvent(const Event e){
     if(e.type == Event::MouseButtonPressed){            // mouse clicked
         _mouseClick(e.mouseButton);
     } else if(e.type == Event::MouseButtonReleased){    // mouse released
@@ -156,7 +175,7 @@ void App::handleEvent(const Event e){
     } else if(e.type == Event::Resized){                // window resized
         _resize(e.size);
     } else if(e.type == Event::Closed){                 // window closed
-        _window->close();
+        _window.close();
     }
 }
 
@@ -236,7 +255,7 @@ void App::_mouseRelease(const Event::MouseButtonEvent mouse){
                 this->draw();
             }
             // clicked on game feild
-            IntRect gameFeild(TILESIZE, 3*TILESIZE, (_window->getSize().x-2)*TILESIZE, (_window->getSize().y-4)*TILESIZE); 
+            IntRect gameFeild(TILESIZE, 3*TILESIZE, (_window.getSize().x-2)*TILESIZE, (_window.getSize().y-4)*TILESIZE); 
             if (!_game->gameOver() && gameFeild.contains(mouse.x, mouse.y)){ 
                 // get transformed coords
                 Transform boardTransform = Transform().translate(_boardx, _boardy).scale(_boardTileSize/SPRITETILESIZE, _boardTileSize/SPRITETILESIZE);
@@ -263,7 +282,7 @@ void App::_mouseRelease(const Event::MouseButtonEvent mouse){
 
 void App::_resize(const Event::SizeEvent newSize){
     // resize window
-    _window->setSize(Vector2u(newSize.width, newSize.height));
+    _window.setSize(Vector2u(newSize.width, newSize.height));
     // make sure size is valid
     _boundWindowSize();
     // make sure board is still in view
@@ -298,9 +317,9 @@ void App::_zoom(const Event::MouseWheelScrollEvent mouse){
 void App::_boundWindowSize(){
     _minWindowWidth = (_game->width()+2)*TILESIZE;
     _minWindowHeight = (_game->height()+4)*TILESIZE;
-    Vector2u boundedSize(max(_window->getSize().x, _minWindowWidth), max(_window->getSize().y, _minWindowHeight));
-    _window->setSize(boundedSize);
-    _window->setView(View(Vector2f(_window->getSize().x/2., _window->getSize().y/2.), Vector2f(_window->getSize().x, _window->getSize().y)));
+    Vector2u boundedSize(max(_window.getSize().x, _minWindowWidth), max(_window.getSize().y, _minWindowHeight));
+    _window.setSize(boundedSize);
+    _window.setView(View(Vector2f(_window.getSize().x/2., _window.getSize().y/2.), Vector2f(_window.getSize().x, _window.getSize().y)));
 }
 
 
@@ -308,9 +327,9 @@ void App::_boundWindowSize(){
 void App::_updateAssets(){
     const Vector2f scale((float)TILESIZE/SPRITETILESIZE, (float)TILESIZE/SPRITETILESIZE);
     // update background
-    _background.setSize(Vector2f(_window->getSize().x, _window->getSize().y));
+    _background.setSize(Vector2f(_window.getSize().x, _window.getSize().y));
     // update background dim
-    _backgroundDim.setSize(Vector2f(_window->getSize().x, _window->getSize().y));
+    _backgroundDim.setSize(Vector2f(_window.getSize().x, _window.getSize().y));
     // update border
     _tl.setScale(scale);
     _t.setScale(scale);
@@ -331,11 +350,11 @@ void App::_updateAssets(){
     _brg.setScale(scale);
     // update faces
     _happyFaceSprite.setScale(scale);
-    _happyFaceSprite.setPosition(_window->getSize().x/2.-TILESIZE, TILESIZE/2.);
+    _happyFaceSprite.setPosition(_window.getSize().x/2.-TILESIZE, TILESIZE/2.);
     _coolFaceSprite.setScale(scale);
-    _coolFaceSprite.setPosition(_window->getSize().x/2.-TILESIZE, TILESIZE/2.);
+    _coolFaceSprite.setPosition(_window.getSize().x/2.-TILESIZE, TILESIZE/2.);
     _sadFaceSprite.setScale(scale);
-    _sadFaceSprite.setPosition(_window->getSize().x/2.-TILESIZE, TILESIZE/2.);
+    _sadFaceSprite.setPosition(_window.getSize().x/2.-TILESIZE, TILESIZE/2.);
     // update digits
     for (int digit = 0; digit < 10; digit++){
         _digitSprites[0][digit].setScale(scale);
@@ -345,36 +364,36 @@ void App::_updateAssets(){
         _digitSprites[2][digit].setScale(scale);
         _digitSprites[2][digit].setPosition(TILESIZE*(11./4), TILESIZE*(3./4));
         _digitSprites[3][digit].setScale(scale);
-        _digitSprites[3][digit].setPosition(_window->getSize().x-TILESIZE*(15./4), TILESIZE*(3./4));
+        _digitSprites[3][digit].setPosition(_window.getSize().x-TILESIZE*(15./4), TILESIZE*(3./4));
         _digitSprites[4][digit].setScale(scale);
-        _digitSprites[4][digit].setPosition(_window->getSize().x-TILESIZE*(11./4), TILESIZE*(3./4));
+        _digitSprites[4][digit].setPosition(_window.getSize().x-TILESIZE*(11./4), TILESIZE*(3./4));
         _digitSprites[5][digit].setScale(scale);
-        _digitSprites[5][digit].setPosition(_window->getSize().x-TILESIZE*(7./4), TILESIZE*(3./4));
+        _digitSprites[5][digit].setPosition(_window.getSize().x-TILESIZE*(7./4), TILESIZE*(3./4));
     }
     // update menu
-    _menu->updateAssets(TILESIZE, _window->getSize().x);
+    _menu->updateAssets(TILESIZE, _window.getSize().x);
     return;
 }
 
 
 void App::_updateBoardBounds(){
     const float boardRatio = (float)_game->width() / (float)_game->height();
-    const float windowRatio = (float)(_window->getSize().x-2*TILESIZE) / (float)(_window->getSize().y-4*TILESIZE);
+    const float windowRatio = (float)(_window.getSize().x-2*TILESIZE) / (float)(_window.getSize().y-4*TILESIZE);
     if (windowRatio > boardRatio){ // wide
-        _minBoardx = (_window->getSize().x/2) - ((_window->getSize().y-4*TILESIZE) * boardRatio / 2.);
-        _maxBoardx = (_window->getSize().x/2) + ((_window->getSize().y-4*TILESIZE) * boardRatio / 2.);
+        _minBoardx = (_window.getSize().x/2) - ((_window.getSize().y-4*TILESIZE) * boardRatio / 2.);
+        _maxBoardx = (_window.getSize().x/2) + ((_window.getSize().y-4*TILESIZE) * boardRatio / 2.);
         _minBoardy = TILESIZE*3;
-        _maxBoardy = _window->getSize().y-TILESIZE;
+        _maxBoardy = _window.getSize().y-TILESIZE;
     } else if (windowRatio < boardRatio){ // tall
         _minBoardx = TILESIZE;
-        _maxBoardx = _window->getSize().x-TILESIZE;
-        _minBoardy = ((_window->getSize().y+TILESIZE)/2) - ((_window->getSize().x-2*TILESIZE) / boardRatio / 2.);
-        _maxBoardy = ((_window->getSize().y+TILESIZE)/2) + ((_window->getSize().x-2*TILESIZE) / boardRatio / 2.);
+        _maxBoardx = _window.getSize().x-TILESIZE;
+        _minBoardy = ((_window.getSize().y+TILESIZE)/2) - ((_window.getSize().x-2*TILESIZE) / boardRatio / 2.);
+        _maxBoardy = ((_window.getSize().y+TILESIZE)/2) + ((_window.getSize().x-2*TILESIZE) / boardRatio / 2.);
     } else { // square
         _minBoardx = TILESIZE;
-        _maxBoardx = _window->getSize().x-TILESIZE;
+        _maxBoardx = _window.getSize().x-TILESIZE;
         _minBoardy = TILESIZE*3;
-        _maxBoardy = _window->getSize().y-TILESIZE;
+        _maxBoardy = _window.getSize().y-TILESIZE;
     }
     return;
 }
@@ -412,58 +431,58 @@ void App::_boundMenuOptions(){
 void App::_drawBorder(){
     // top left corner
     _tl.setPosition(0, 0);
-    _window->draw(_tl);
+    _window.draw(_tl);
     // top row
-    for (unsigned int x = TILESIZE; x < _window->getSize().x-TILESIZE; x += TILESIZE){
+    for (unsigned int x = TILESIZE; x < _window.getSize().x-TILESIZE; x += TILESIZE){
         _t.setPosition(x, 0);
-        _window->draw(_t);
+        _window.draw(_t);
     }
     // top right corner
-    _tr.setPosition(_window->getSize().x-TILESIZE, 0);
-    _window->draw(_tr);
+    _tr.setPosition(_window.getSize().x-TILESIZE, 0);
+    _window.draw(_tr);
     // top left side
     _l.setPosition(0, TILESIZE);
-    _window->draw(_l);
+    _window.draw(_l);
     // top middle row
-    for (unsigned int x = TILESIZE; x < _window->getSize().x-TILESIZE; x += TILESIZE){
+    for (unsigned int x = TILESIZE; x < _window.getSize().x-TILESIZE; x += TILESIZE){
         _m.setPosition(x, TILESIZE);
-        _window->draw(_m);
+        _window.draw(_m);
     }
     // top right side
-    _r.setPosition(_window->getSize().x-TILESIZE, TILESIZE);
-    _window->draw(_r);
+    _r.setPosition(_window.getSize().x-TILESIZE, TILESIZE);
+    _window.draw(_r);
     // top left grid corner
     _tlg.setPosition(0, TILESIZE*2);
-    _window->draw(_tlg);
+    _window.draw(_tlg);
     // top grid row
-    for (unsigned int x = TILESIZE; x < _window->getSize().x-TILESIZE; x += TILESIZE){
+    for (unsigned int x = TILESIZE; x < _window.getSize().x-TILESIZE; x += TILESIZE){
         _tg.setPosition(x, TILESIZE*2);
-        _window->draw(_tg);
+        _window.draw(_tg);
     }
     // top right grid corner
-    _trg.setPosition(_window->getSize().x-TILESIZE, TILESIZE*2);
-    _window->draw(_trg);
+    _trg.setPosition(_window.getSize().x-TILESIZE, TILESIZE*2);
+    _window.draw(_trg);
     // left grid edge
-    for (unsigned int y = TILESIZE*3; y < _window->getSize().y-TILESIZE; y += TILESIZE){
+    for (unsigned int y = TILESIZE*3; y < _window.getSize().y-TILESIZE; y += TILESIZE){
         _lg.setPosition(0, y);
-        _window->draw(_lg);
+        _window.draw(_lg);
     }
     // right grid edge
-    for (unsigned int y = TILESIZE*3; y < _window->getSize().y-TILESIZE; y += TILESIZE){
-        _rg.setPosition(_window->getSize().x-TILESIZE, y);
-        _window->draw(_rg);
+    for (unsigned int y = TILESIZE*3; y < _window.getSize().y-TILESIZE; y += TILESIZE){
+        _rg.setPosition(_window.getSize().x-TILESIZE, y);
+        _window.draw(_rg);
     }
     // bottom left grid corner
-    _blg.setPosition(0, _window->getSize().y-TILESIZE);
-    _window->draw(_blg);
+    _blg.setPosition(0, _window.getSize().y-TILESIZE);
+    _window.draw(_blg);
     // bottom grid row
-    for (unsigned int x = TILESIZE; x < _window->getSize().x-TILESIZE; x += TILESIZE){
-        _bg.setPosition(x, _window->getSize().y-TILESIZE);
-        _window->draw(_bg);
+    for (unsigned int x = TILESIZE; x < _window.getSize().x-TILESIZE; x += TILESIZE){
+        _bg.setPosition(x, _window.getSize().y-TILESIZE);
+        _window.draw(_bg);
     }
     // bottom right grid corner
-    _brg.setPosition(_window->getSize().x-TILESIZE, _window->getSize().y-TILESIZE);
-    _window->draw(_brg);
+    _brg.setPosition(_window.getSize().x-TILESIZE, _window.getSize().y-TILESIZE);
+    _window.draw(_brg);
 }
 
 
