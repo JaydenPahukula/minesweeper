@@ -1,10 +1,10 @@
 #ifndef APP_H
 #define APP_H
 
+#include "Confetti.h"
 #include "Game.h"
 #include "Menu.h"
 #include "Timer.h"
-#include "Confetti.h"
 
 #include <SFML/Graphics.hpp>
 
@@ -77,9 +77,9 @@ class App {
         bool _autoOpeningEnabled;
 
         // mouse/panning
-        bool _holding, _panning;
-        unsigned int _panx, _pany;
-        int _lastMousex, _lastMousey;
+        bool _mouseHolding, _mousePanning;
+        unsigned int _mouseAnchorx, _mouseAnchory;
+        int _mouseLastx, _mouseLasty;
 
         // timer
         Timer _timer;

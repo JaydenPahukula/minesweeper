@@ -1,10 +1,10 @@
 #include "definitions.h"
 
 #include "App.h"
+#include "Confetti.h"
 #include "Game.h"
 #include "Menu.h"
 #include "Timer.h"
-#include "Confetti.h"
 
 #include APPSPRITESHEETPATH
 #include ICONPATH
@@ -42,9 +42,13 @@ App::App(){
     _boardy = TILESIZE*3;
     _boardTileSize =  TILESIZE;
     
-    // panning
-    _holding = false;
-    _panning = false;
+    // mouse stuff
+    _mouseHolding = false;
+    _mousePanning = false;
+    _mouseAnchorx = 0;
+    _mouseAnchory = 0;
+    _mouseLastx = 0;
+    _mouseLasty = 0;
 
     // timer
     _timer = Timer();
@@ -193,6 +197,39 @@ void App::_keyPress(const Event::KeyEvent key){
 
 
 void App::_mouseClick(const Event::MouseButtonEvent mouse){
+    if (!_menuOpen && _zoomEnabled) {
+        // start holding
+        _mouseHolding = true;
+        _mouseAnchorx = mouse.x;
+        _mouseAnchory = mouse.y;
+        return;
+    }
+}
+
+
+
+void App::_mouseMove(const Event::MouseMoveEvent mouse){
+    if (_zoomEnabled){
+        if (_mousePanning){
+            // move board
+            _boardx += mouse.x - _mouseLastx;
+            _boardy += mouse.y - _mouseLasty;
+            _boundBoardView();
+        } else if (_mouseHolding && sqrt(pow(mouse.x-_mouseAnchorx, 2) + pow(mouse.y-_mouseAnchory, 2)) > MINPANDISTANCE){
+            _mousePanning = true;
+            _boardx += mouse.x-_mouseAnchorx;
+            _boardy += mouse.y-_mouseAnchory;
+            _boundBoardView();
+        }
+        _mouseLastx = mouse.x;
+        _mouseLasty = mouse.y;
+    }
+    return;
+}
+
+
+
+void App::_mouseRelease(const Event::MouseButtonEvent mouse){
     if (_menuOpen){
         if (mouse.button == Mouse::Left && _menu->getBounds().contains(mouse.x, mouse.y)){
             if (_menu->click(mouse)){
@@ -205,41 +242,8 @@ void App::_mouseClick(const Event::MouseButtonEvent mouse){
             // clicked outside menu, so close menu
             _menuOpen = false;
         }
-    } else if (_zoomEnabled) {
-        // start holding
-        _holding = true;
-        _panx = mouse.x;
-        _pany = mouse.y;
-        return;
-    }
-}
-
-
-
-void App::_mouseMove(const Event::MouseMoveEvent mouse){
-    if (_zoomEnabled){
-        if (_panning){
-            // move board
-            _boardx += mouse.x - _lastMousex;
-            _boardy += mouse.y - _lastMousey;
-            _boundBoardView();
-        } else if (_holding && sqrt(pow(mouse.x-_panx, 2) + pow(mouse.y-_pany, 2)) > MINPANDISTANCE){
-            _panning = true;
-            _boardx += mouse.x-_panx;
-            _boardy += mouse.y-_pany;
-            _boundBoardView();
-        }
-        _lastMousex = mouse.x;
-        _lastMousey = mouse.y;
-    }
-    return;
-}
-
-
-
-void App::_mouseRelease(const Event::MouseButtonEvent mouse){
-    if (!_menuOpen){
-        if (!_panning){
+    } else {
+        if (!_mousePanning){
             // clicked on smiley face
             if (mouse.button == Mouse::Left && _happyFaceSprite.getGlobalBounds().contains(mouse.x, mouse.y)){
                 // delete old game
@@ -273,9 +277,9 @@ void App::_mouseRelease(const Event::MouseButtonEvent mouse){
                 } 
             }
         }
-        _holding = false;
-        _panning = false;
     }
+    _mouseHolding = false;
+    _mousePanning = false;
     return;
 }
 
