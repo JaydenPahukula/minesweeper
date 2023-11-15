@@ -8,6 +8,7 @@ int main() {
 
     // draw loop
     while(app.isOpen()) {
+        app.update();
         app.draw();
     }
 

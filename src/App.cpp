@@ -87,17 +87,37 @@ App::~App(){
 
 
 
-void App::draw(){
-    
+void App::update(){
+
     // handle events
     Event event;
-    while (_window.pollEvent(event)){ _handleEvent(event); }
-    // update game values
-    unsigned int isGameOver = _game->gameOver();
-    unsigned int numBombsRemaining = _game->numBombsRemaining();
+    while (_window.pollEvent(event)){
+        if(event.type == Event::MouseButtonPressed){            // mouse clicked
+            _mouseClick(event.mouseButton);
+        } else if(event.type == Event::MouseButtonReleased){    // mouse released
+            _mouseRelease(event.mouseButton);
+        } else if(event.type == Event::MouseMoved){             // mouse moved
+            _mouseMove(event.mouseMove);
+        } else if(event.type == Event::MouseWheelScrolled){     // mouse scrolled
+            _zoom(event.mouseWheelScroll);
+        } else if(event.type == Event::KeyPressed){             // key pressed
+            _keyPress(event.key);
+        } else if(event.type == Event::Resized){                // window resized
+            _resize(event.size);
+        } else if(event.type == Event::Closed){                 // window closed
+            _window.close();
+        }
+    }
+
     // update timer
-    if (isGameOver) _timer.stop();
-    int seconds = _timer.seconds() % 1000;
+    if (_game->gameOver()) _timer.stop();
+
+    return;
+}
+
+
+
+void App::draw(){
 
     // clear window
     _window.clear();
@@ -114,7 +134,7 @@ void App::draw(){
     _drawBorder();
 
     // draw smiley face
-    switch (isGameOver){
+    switch (_game->gameOver()){
         case 0: _window.draw(_happyFaceSprite); break;
         case 1: _window.draw(_sadFaceSprite); break;
         case 2: _window.draw(_coolFaceSprite); break;
@@ -122,17 +142,19 @@ void App::draw(){
     }
 
     // draw bomb counter
+    unsigned int numBombsRemaining = _game->numBombsRemaining();
     _window.draw(_digitSprites[0][(numBombsRemaining/100)%10]);
     _window.draw(_digitSprites[1][(numBombsRemaining/10)%10]);
     _window.draw(_digitSprites[2][numBombsRemaining%10]);
 
     // draw timer
+    unsigned int seconds = _timer.seconds() % 1000;
     _window.draw(_digitSprites[3][(seconds/100)%10]);
     _window.draw(_digitSprites[4][(seconds/10)%10]);
     _window.draw(_digitSprites[5][seconds%10]);
 
     // draw confetti
-    if (isGameOver == 2){
+    if (_game->gameOver() == 2){
         if (!_confettiLaunched){
             _confetti.launch(Vector2f(_window.getSize().x/2, -20));
             _confettiLaunched = true;
@@ -157,26 +179,6 @@ void App::draw(){
 
 bool App::isOpen(){
     return _window.isOpen();
-}
-
-
-
-void App::_handleEvent(const Event e){
-    if(e.type == Event::MouseButtonPressed){            // mouse clicked
-        _mouseClick(e.mouseButton);
-    } else if(e.type == Event::MouseButtonReleased){    // mouse released
-        _mouseRelease(e.mouseButton);
-    } else if(e.type == Event::MouseMoved){             // mouse moved
-        _mouseMove(e.mouseMove);
-    } else if(e.type == Event::MouseWheelScrolled){     // mouse scrolled
-        _zoom(e.mouseWheelScroll);
-    } else if(e.type == Event::KeyPressed){             // key pressed
-        _keyPress(e.key);
-    } else if(e.type == Event::Resized){                // window resized
-        _resize(e.size);
-    } else if(e.type == Event::Closed){                 // window closed
-        _window.close();
-    }
 }
 
 

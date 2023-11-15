@@ -17,7 +17,10 @@ class App {
         // destructor
         ~App();
 
-        // update/draw the app
+        // update the app
+        void update();
+
+        // draw the app
         void draw();
 
         // is app open
@@ -35,7 +38,6 @@ class App {
         void _boundWindowSize();
 
         // event handlers
-        void _handleEvent(const sf::Event e);
         void _keyPress(const sf::Event::KeyEvent key);
         void _mouseClick(const sf::Event::MouseButtonEvent mouse);
         void _mouseMove(const sf::Event::MouseMoveEvent mouse);
