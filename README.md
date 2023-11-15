@@ -4,6 +4,10 @@ This is the classic game of Minesweeper, written in C++ using SFML.
 
 ## How to Play
 
+To get into the game, simply download `minesweeper.exe` from the releases tab and will be ready to play out of the box. The game is primarily built for Windows and may or may not work on Mac or Linux (though I intend to add support later).
+
+## Rules
+
 Click on the smiley face to start a new game. The playing field starts as a grid of unopened tiles, left click on a tile to reveal it. If the tile shows a number, there are that many mines in the surrounding 8 tiles. You can right click a tile to flag it if you think there is a mine there. 
 
 The goal of the game is to reveal all tiles without mines, or flag all the mines. Be careful, if you reveal a tile with a mine, it is game over!
