@@ -29,9 +29,9 @@ App::App(){
     _game = new Game(DEFAULTGAMEWIDTH, DEFAULTGAMEHEIGHT, DEFAULTNUMBOMBS, DEFAULTAUTOOPENING);
 
     // initialize window
-    _minWindowWidth = (DEFAULTGAMEWIDTH+2)*TILESIZE;
-    _minWindowHeight = (DEFAULTGAMEHEIGHT+4)*TILESIZE;
-    _window.create(VideoMode(_minWindowWidth, _minWindowHeight), "Minesweeper", Style::Default);
+    _minWindowWidth = 10*TILESIZE;
+    _minWindowHeight = 12*TILESIZE;
+    _window.create(VideoMode((DEFAULTGAMEWIDTH+2)*TILESIZE, (DEFAULTGAMEHEIGHT+4)*TILESIZE), "Minesweeper", Style::Default);
     _window.setFramerateLimit(60);
     // set window icon
     _icon.loadFromMemory(ICONFILE, sizeof(ICONFILE));
@@ -75,7 +75,7 @@ App::App(){
     _menu->updateAssets(TILESIZE, _window.getSize().y);
 
     // update all dynamic sprite locations
-    _updateAssets();
+    _updateDynamicAssets();
 
 }
 
@@ -197,7 +197,7 @@ void App::_mouseClick(const Event::MouseButtonEvent mouse){
         if (mouse.button == Mouse::Left && _menu->getBounds().contains(mouse.x, mouse.y)){
             if (_menu->click(mouse)){
                 _boundMenuOptions();
-                _updateAssets();
+                _updateDynamicAssets();
                 _boundWindowSize();
                 _resetBoardView();
             }
@@ -291,7 +291,7 @@ void App::_resize(const Event::SizeEvent newSize){
     if (!_zoomEnabled) _resetBoardView();
     _boundBoardView();
     // update sprite locations
-    _updateAssets();
+    _updateDynamicAssets();
     return;
 }
 
@@ -317,8 +317,6 @@ void App::_zoom(const Event::MouseWheelScrollEvent mouse){
 
 
 void App::_boundWindowSize(){
-    _minWindowWidth = (_game->width()+2)*TILESIZE;
-    _minWindowHeight = (_game->height()+4)*TILESIZE;
     Vector2u boundedSize(max(_window.getSize().x, _minWindowWidth), max(_window.getSize().y, _minWindowHeight));
     _window.setSize(boundedSize);
     _window.setView(View(Vector2f(_window.getSize().x/2., _window.getSize().y/2.), Vector2f(_window.getSize().x, _window.getSize().y)));
@@ -326,50 +324,25 @@ void App::_boundWindowSize(){
 
 
 
-void App::_updateAssets(){
-    const Vector2f scale((float)TILESIZE/SPRITETILESIZE, (float)TILESIZE/SPRITETILESIZE);
+void App::_updateDynamicAssets(){
+
     // update background
     _background.setSize(Vector2f(_window.getSize().x, _window.getSize().y));
     // update background dim
     _backgroundDim.setSize(Vector2f(_window.getSize().x, _window.getSize().y));
-    // update border
-    _tl.setScale(scale);
-    _t.setScale(scale);
-    _tr.setScale(scale);
-    _l.setScale(scale);
-    _m.setScale(scale);
-    _r.setScale(scale);
-    _bl.setScale(scale);
-    _b.setScale(scale);
-    _br.setScale(scale);
-    _tlg.setScale(scale);
-    _tg.setScale(scale);
-    _trg.setScale(scale);
-    _lg.setScale(scale);
-    _rg.setScale(scale);
-    _blg.setScale(scale);
-    _bg.setScale(scale);
-    _brg.setScale(scale);
+
     // update faces
-    _happyFaceSprite.setScale(scale);
     _happyFaceSprite.setPosition(_window.getSize().x/2.-TILESIZE, TILESIZE/2.);
-    _coolFaceSprite.setScale(scale);
     _coolFaceSprite.setPosition(_window.getSize().x/2.-TILESIZE, TILESIZE/2.);
-    _sadFaceSprite.setScale(scale);
     _sadFaceSprite.setPosition(_window.getSize().x/2.-TILESIZE, TILESIZE/2.);
+    
     // update digits
     for (int digit = 0; digit < 10; digit++){
-        _digitSprites[0][digit].setScale(scale);
         _digitSprites[0][digit].setPosition(TILESIZE*(3./4), TILESIZE*(3./4));
-        _digitSprites[1][digit].setScale(scale);
         _digitSprites[1][digit].setPosition(TILESIZE*(7./4), TILESIZE*(3./4));
-        _digitSprites[2][digit].setScale(scale);
         _digitSprites[2][digit].setPosition(TILESIZE*(11./4), TILESIZE*(3./4));
-        _digitSprites[3][digit].setScale(scale);
         _digitSprites[3][digit].setPosition(_window.getSize().x-TILESIZE*(15./4), TILESIZE*(3./4));
-        _digitSprites[4][digit].setScale(scale);
         _digitSprites[4][digit].setPosition(_window.getSize().x-TILESIZE*(11./4), TILESIZE*(3./4));
-        _digitSprites[5][digit].setScale(scale);
         _digitSprites[5][digit].setPosition(_window.getSize().x-TILESIZE*(7./4), TILESIZE*(3./4));
     }
     // update menu
@@ -489,6 +462,7 @@ void App::_drawBorder(){
 
 
 void App::_loadAssets(){
+    const Vector2f scale((float)TILESIZE/SPRITETILESIZE, (float)TILESIZE/SPRITETILESIZE);
 
     // background rectangle
     _background.setFillColor(Color(90, 90, 90));
@@ -504,64 +478,84 @@ void App::_loadAssets(){
     // top left
     _tl.setTexture(_appspritesheet);
     _tl.setTextureRect(IntRect(0, 0, SPRITETILESIZE, SPRITETILESIZE));
+    _tl.setScale(scale);
     // top
     _t.setTexture(_appspritesheet);
     _t.setTextureRect(IntRect(16, 0, SPRITETILESIZE, SPRITETILESIZE));
+    _t.setScale(scale);
     // top right
     _tr.setTexture(_appspritesheet);
     _tr.setTextureRect(IntRect(32, 0, SPRITETILESIZE, SPRITETILESIZE));
+    _tr.setScale(scale);
     // left
     _l.setTexture(_appspritesheet);
     _l.setTextureRect(IntRect(0, 16, SPRITETILESIZE, SPRITETILESIZE));
+    _l.setScale(scale);
     // middle
     _m.setTexture(_appspritesheet);
     _m.setTextureRect(IntRect(16, 16, SPRITETILESIZE, SPRITETILESIZE));
+    _m.setScale(scale);
     // right
     _r.setTexture(_appspritesheet);
     _r.setTextureRect(IntRect(32, 16, SPRITETILESIZE, SPRITETILESIZE));
+    _r.setScale(scale);
     // bottom left
     _bl.setTexture(_appspritesheet);
     _bl.setTextureRect(IntRect(0, 32, SPRITETILESIZE, SPRITETILESIZE));
+    _bl.setScale(scale);
     // bottom middle
     _b.setTexture(_appspritesheet);
     _b.setTextureRect(IntRect(16, 32, SPRITETILESIZE, SPRITETILESIZE));
+    _b.setScale(scale);
     // bottom right
     _br.setTexture(_appspritesheet);
     _br.setTextureRect(IntRect(32, 32, SPRITETILESIZE, SPRITETILESIZE));
+    _br.setScale(scale);
     // top left grid corner
     _tlg.setTexture(_appspritesheet);
     _tlg.setTextureRect(IntRect(0, 48, SPRITETILESIZE, SPRITETILESIZE));
+    _tlg.setScale(scale);
     // top grid middle
     _tg.setTexture(_appspritesheet);
     _tg.setTextureRect(IntRect(16, 48, SPRITETILESIZE, SPRITETILESIZE));
+    _tg.setScale(scale);
     // top right grid corner
     _trg.setTexture(_appspritesheet);
     _trg.setTextureRect(IntRect(32, 48, SPRITETILESIZE, SPRITETILESIZE));
+    _trg.setScale(scale);
     // left grid side
     _lg.setTexture(_appspritesheet);
     _lg.setTextureRect(IntRect(0, 64, SPRITETILESIZE, SPRITETILESIZE));
+    _lg.setScale(scale);
     // right grid side
     _rg.setTexture(_appspritesheet);
     _rg.setTextureRect(IntRect(32, 64, SPRITETILESIZE, SPRITETILESIZE));
+    _rg.setScale(scale);
     // bottom left grid corner
     _blg.setTexture(_appspritesheet);
     _blg.setTextureRect(IntRect(0, 80, SPRITETILESIZE, SPRITETILESIZE));
+    _blg.setScale(scale);
     // bottom grid middle
     _bg.setTexture(_appspritesheet);
     _bg.setTextureRect(IntRect(16, 80, SPRITETILESIZE, SPRITETILESIZE));
+    _bg.setScale(scale);
     // bottom right grid corner
     _brg.setTexture(_appspritesheet);
     _brg.setTextureRect(IntRect(32, 80, SPRITETILESIZE, SPRITETILESIZE));
+    _brg.setScale(scale);
     
     // load happy face
     _happyFaceSprite.setTexture(_appspritesheet);
     _happyFaceSprite.setTextureRect(IntRect(0, 96, 32, 32));
+    _happyFaceSprite.setScale(scale);
     // load cool face
     _coolFaceSprite.setTexture(_appspritesheet);
     _coolFaceSprite.setTextureRect(IntRect(32, 96, 32, 32));
+    _coolFaceSprite.setScale(scale);
     // load sad face
     _sadFaceSprite.setTexture(_appspritesheet);
     _sadFaceSprite.setTextureRect(IntRect(64, 96, 32, 32));
+    _sadFaceSprite.setScale(scale);
 
     // load digits
     IntRect spriteLocations[10] = {
@@ -577,6 +571,7 @@ void App::_loadAssets(){
         IntRect(112, 24, SPRITETILESIZE, SPRITETILESIZE*1.5)
     };
     Sprite digitSprite(_appspritesheet);
+    digitSprite.setScale(scale);
     for (int digit = 0; digit < 10; digit++){
         digitSprite.setTextureRect(spriteLocations[digit]);
         _digitSprites[0][digit] = digitSprite;

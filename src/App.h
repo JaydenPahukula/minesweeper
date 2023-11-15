@@ -61,7 +61,7 @@ class App {
         sf::Sprite _digitSprites[6][10];
         sf::RectangleShape _backgroundDim;
         void _loadAssets();
-        void _updateAssets();
+        void _updateDynamicAssets();
         void _drawBorder();
 
         // menu
