@@ -12,9 +12,6 @@ LIBS = sfml-graphics-s sfml-window-s sfml-system-s opengl32 freetype winmm gdi32
 
 all: $(TARGET)
 
-release: FLAGS += -mwindows
-release: all
-
 $(TARGET): $(OBJECTS)
 	g++ $^ -o $@ $(FLAGS) -I$(INC_PATH) -L$(LIB_PATH) $(addprefix -l,$(LIBS))
 
