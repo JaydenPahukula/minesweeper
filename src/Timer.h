@@ -15,7 +15,7 @@ class Timer {
         void stop();
 
         // getters
-        unsigned int seconds();
+        unsigned int seconds() const;
 
     private:
 

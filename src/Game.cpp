@@ -46,6 +46,9 @@ Game::Game(const unsigned int width, const unsigned int height, const unsigned i
     // init tiles
     _loadTileSprites();
 
+    // create timer
+    _timer = Timer();
+
     if (autoOpen){
         // find zero tile
         unsigned int x, y;
@@ -103,6 +106,9 @@ void Game::click(const sf::Event::MouseButtonEvent mouse, unsigned int x, unsign
     // return if out of bounds
     if (x < 0 || x >= _width || y < 0 || y >= _height) return; 
 
+    // start timer if not already
+    _timer.start();
+
     // if left clicked and tile not flagged or revealed
     if (mouse.button == Mouse::Left && !_grid[y][x]->isFlagged() && !_grid[y][x]->isRevealed()){
         // reveal tile
@@ -133,17 +139,20 @@ unsigned int Game::height() const { return _height; }
 unsigned int Game::numBombs() const { return _numBombs; }
 unsigned int Game::numBombsRemaining() const { return _numBombsRemaining; }
 unsigned int Game::gameOver() const { return _gameOver; }
+unsigned int Game::seconds() const { return _timer.seconds(); }
 
 
 
 void Game::_playerWins(){
     _gameOver = 2;
+    _timer.stop();
     _numBombsRemaining = 0;
 }
 
 
 void Game::_playerLoses(){
     _gameOver = 1;
+    _timer.stop();
 }
 
 

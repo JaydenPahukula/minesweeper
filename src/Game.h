@@ -2,6 +2,7 @@
 #define GAME_H
 
 #include "Tile.h"
+#include "Timer.h"
 
 #include <SFML/Graphics.hpp>
 
@@ -29,6 +30,7 @@ class Game {
         unsigned int numBombs() const;
         unsigned int numBombsRemaining() const;
         unsigned int gameOver() const;
+        unsigned int seconds() const;
 
     private:
 
@@ -51,6 +53,9 @@ class Game {
         void _revealTile(unsigned int x, unsigned int y);
         void _checkZeroTile(unsigned int x, unsigned int y, bool first);
         void _chord(unsigned int x, unsigned int y);
+
+        // timer
+        Timer _timer;
 
 };
 

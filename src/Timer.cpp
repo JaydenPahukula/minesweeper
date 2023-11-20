@@ -38,12 +38,12 @@ void Timer::stop(){
 }
 
 
-unsigned int Timer::seconds(){
+unsigned int Timer::seconds() const {
     
     chrono::duration<double> diff;
 
     if (_running) diff = _clock.now() - _startTime;
     else diff = _endTime - _startTime;
     
-    return (unsigned int)diff.count();
+    return (unsigned int)diff.count() % 1000;
 }

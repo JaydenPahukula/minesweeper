@@ -50,9 +50,6 @@ App::App(){
     _mouseLastx = 0;
     _mouseLasty = 0;
 
-    // timer
-    _timer = Timer();
-
     // confetti
     _confetti = ConfettiCannon();
     _confettiLaunched = false;
@@ -113,9 +110,6 @@ void App::update(){
         }
     }
 
-    // update timer
-    if (_game->gameOver()) _timer.stop();
-
     return;
 }
 
@@ -152,7 +146,7 @@ void App::draw(){
     _window.draw(_digitSprites[2][numBombsRemaining%10]);
 
     // draw timer
-    unsigned int seconds = _timer.seconds() % 1000;
+    unsigned int seconds = _game->seconds();
     _window.draw(_digitSprites[3][(seconds/100)%10]);
     _window.draw(_digitSprites[4][(seconds/10)%10]);
     _window.draw(_digitSprites[5][seconds%10]);
@@ -248,14 +242,10 @@ void App::_mouseRelease(const Event::MouseButtonEvent mouse){
             if (mouse.button == Mouse::Left && _happyFaceSprite.getGlobalBounds().contains(mouse.x, mouse.y)){
                 // delete old game
                 delete _game;
-                // reset timer
-                _timer.reset();
                 // reset confetti
                 _confettiLaunched = false;
                 // make new game
                 _game = new Game(_nextGameWidth, _nextGameHeight, _nextNumBombs, _autoOpeningEnabled);
-                // start timer if auto opening is enabled
-                if (_autoOpeningEnabled) _timer.start();
                 // draw new game
                 _resetBoardView();
                 this->draw();
@@ -269,11 +259,10 @@ void App::_mouseRelease(const Event::MouseButtonEvent mouse){
                 int tilex = transformedMouse.x / SPRITETILESIZE;
                 int tiley = transformedMouse.y / SPRITETILESIZE;
                 // check if clicked on a tile
-                if (tilex >= 0 && tilex < (int)_game->width() && tiley >= 0 && tiley < (int)_game->height()){
+                IntRect boundaries(0, 0, _game->width(), _game->height());
+                if (transformedMouse.x >= 0 && transformedMouse.y >= 0 && boundaries.contains(tilex, tiley)){
                     // click
                     _game->click(mouse, tilex, tiley, _chordingEnabled);
-                    // start timer if not already started
-                    _timer.start();
                 } 
             }
         }

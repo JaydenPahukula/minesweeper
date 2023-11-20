@@ -4,7 +4,6 @@
 #include "Confetti.h"
 #include "Game.h"
 #include "Menu.h"
-#include "Timer.h"
 
 #include <SFML/Graphics.hpp>
 
@@ -80,9 +79,6 @@ class App {
         bool _mouseHolding, _mousePanning;
         unsigned int _mouseAnchorx, _mouseAnchory;
         int _mouseLastx, _mouseLasty;
-
-        // timer
-        Timer _timer;
 
         // confetti
         ConfettiCannon _confetti;
