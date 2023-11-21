@@ -415,7 +415,7 @@ void App::_boundMenuOptions(){
     _nextGameHeight = min(_nextGameHeight, (unsigned int)MAXGAMEHEIGHT);
     _nextNumBombs = max((int)_nextNumBombs, 1);
     _nextNumBombs = min(_nextNumBombs, (unsigned int)MAXNUMBOMBS);
-    _nextNumBombs = min(_nextNumBombs, _nextGameWidth*_nextGameHeight);
+    _nextNumBombs = min(_nextNumBombs, _nextGameWidth*_nextGameHeight-1);
 }
 
 
