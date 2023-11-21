@@ -31,6 +31,8 @@ class Game {
         unsigned int numBombsRemaining() const;
         unsigned int gameOver() const;
         unsigned int seconds() const;
+        unsigned int get3BV() const;
+        float tilesPerSecond() const;
 
     private:
 
@@ -41,6 +43,7 @@ class Game {
         std::vector<std::vector<Tile*>> _grid;
         unsigned int _gameOver;
         unsigned int _numBombsRemaining;
+        unsigned int _numRevealed;
 
         // textures and sprites
         void _loadTileSprites();
@@ -57,6 +60,10 @@ class Game {
         // timer
         Timer _timer;
 
+        // stats
+        unsigned int _3BV;
+        void _update3BV();
+        unsigned int _numClicks;
 };
 
 

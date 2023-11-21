@@ -21,5 +21,8 @@ Press `esc` to open/close the menu. These are the options available:
 - Game width/height* - Change the width/height of the playing field
 - Number of bombs* - Change the number of mines on the field
 - Automatic opening - Automatically open a zero tile when creating a new game
+- Show game stats - Show extra information about the current game. Currently the available stats are:
+    - 3BV - The theoretical minimum amount of clicks to beat the current game, without flagging or chording
+    - TpS - Tiles revealed per second
 
 \**these changes go into effect at the start of the next game*

@@ -55,10 +55,13 @@ class App {
         // graphics
         sf::RectangleShape _background;
         sf::Texture _appspritesheet;
+        sf::Font _font;
         sf::Sprite _tl, _t, _tr, _l, _m, _r, _bl, _b, _br, _tlg, _tg, _trg, _lg, _rg, _blg, _bg, _brg;
         sf::Sprite _happyFaceSprite, _coolFaceSprite, _sadFaceSprite;
         sf::Sprite _digitSprites[6][10];
         sf::RectangleShape _backgroundDim;
+        sf::Text _statsText;
+        std::string _getStatsString();
         void _loadAssets();
         void _updateDynamicAssets();
         void _drawBorder();
@@ -74,6 +77,7 @@ class App {
         unsigned int _nextGameHeight;
         unsigned int _nextNumBombs;
         bool _autoOpeningEnabled;
+        bool _showStats;
 
         // mouse/panning
         bool _mouseHolding, _mousePanning;

@@ -8,6 +8,7 @@ using namespace sf;
 
 #include <string>
 #include <vector>
+#include <queue>
 using namespace std;
 
 #include <cstdlib>
@@ -36,7 +37,6 @@ Game::Game(const unsigned int width, const unsigned int height, const unsigned i
 
     // make bombs
     _numBombs = numBombs;
-    _numBombsRemaining = _numBombs;
     for (unsigned int i = 0; i < _numBombs; i++){
         if (!_grid[rand()%_height][rand()%_width]->init(9)){
             i--;
@@ -49,6 +49,12 @@ Game::Game(const unsigned int width, const unsigned int height, const unsigned i
     // create timer
     _timer = Timer();
 
+    // stats
+    _numBombsRemaining = _numBombs;
+    _numRevealed = 0;
+    _update3BV();
+    _numClicks = 0;
+
     if (autoOpen){
         // find zero tile
         unsigned int x, y;
@@ -60,6 +66,10 @@ Game::Game(const unsigned int width, const unsigned int height, const unsigned i
         _revealTile(x, y);
         // update game
         _update();
+        // start timer
+        _timer.start();
+        // auto open counts as a click
+        _numClicks++;
     }
     
 }
@@ -109,6 +119,9 @@ void Game::click(const sf::Event::MouseButtonEvent mouse, unsigned int x, unsign
     // start timer if not already
     _timer.start();
 
+    // increment click
+    _numClicks++;
+
     // if left clicked and tile not flagged or revealed
     if (mouse.button == Mouse::Left && !_grid[y][x]->isFlagged() && !_grid[y][x]->isRevealed()){
         // reveal tile
@@ -140,6 +153,8 @@ unsigned int Game::numBombs() const { return _numBombs; }
 unsigned int Game::numBombsRemaining() const { return _numBombsRemaining; }
 unsigned int Game::gameOver() const { return _gameOver; }
 unsigned int Game::seconds() const { return _timer.seconds(); }
+unsigned int Game::get3BV() const { return _3BV; }
+float Game::tilesPerSecond() const { return (_timer.seconds() == 0) ? 0. : (float)_numRevealed / _timer.seconds(); }
 
 
 
@@ -156,16 +171,14 @@ void Game::_playerLoses(){
 }
 
 
-
 void Game::_update(){
-
     // count remaining bombs and unrevealed tiles
     unsigned int numFlagged = 0;
-    unsigned int numUnrevealed = 0;
+    _numRevealed = 0;
     for (unsigned int y1 = 0; y1 < _height; y1++){
         for (unsigned int x1 = 0; x1 < _width; x1++){
             numFlagged += _grid[y1][x1]->isFlagged();
-            numUnrevealed += !_grid[y1][x1]->isRevealed();
+            _numRevealed += _grid[y1][x1]->isRevealed();
         }
     }
     if (numFlagged > _numBombs) numFlagged = _numBombs;
@@ -174,7 +187,7 @@ void Game::_update(){
     _numBombsRemaining = _numBombs - numFlagged;
 
     // check if game is done
-    if (!_gameOver && numUnrevealed == _numBombs){
+    if (!_gameOver && (_width * _height) - _numRevealed == _numBombs){
         _playerWins();
     }
 
@@ -267,6 +280,58 @@ void Game::_chord(unsigned int x, unsigned int y){
         }
     }
 
+    return;
+}
+
+
+
+void Game::_update3BV(){
+    const IntRect boundaries(0, 0, _width, _height);
+    vector<vector<bool>> seen = vector<vector<bool>>(_height, vector<bool>(_width, false));
+    unsigned int count = 0;
+
+    // search all zero tiles
+    for (unsigned int y1 = 0; y1 < _height; y1++){
+        for (unsigned int x1 = 0; x1 < _width; x1++){
+
+            if (!seen[x1][y1] && _grid[y1][x1]->getIdentity() == 0){
+                queue<Vector2i> q;
+                q.push(Vector2i(x1,y1));
+                // bfs
+                while (!q.empty()){
+                    // process current tile
+                    Vector2i curr = q.front(); q.pop();
+
+                    // if zero tile, check neighbors
+                    if (_grid[curr.y][curr.x]->getIdentity() == 0){
+                        for (int dy = -1; dy <= 1; dy++){
+                            for (int dx = -1; dx <= 1; dx++){
+                                // if in bounds and not seen, add to queue
+                                Vector2i neighbor(curr.x+dx, curr.y+dy);
+                                if (boundaries.contains(neighbor) && !seen[neighbor.x][neighbor.y]){
+                                    seen[neighbor.x][neighbor.y] = true;
+                                    q.push(neighbor);
+                                }
+                            }
+                        }
+                    }
+                }
+                count++;
+            }
+        }
+    }
+
+    // count all remaining non-bomb tiles
+    for (unsigned int y1 = 0; y1 < _height; y1++){
+        for (unsigned int x1 = 0; x1 < _width; x1++){
+            if (!seen[x1][y1] && !_grid[y1][x1]->isBomb()){
+                count++;
+            }
+        }
+    }
+
+    // set 3BV
+    _3BV = count;
     return;
 }
 

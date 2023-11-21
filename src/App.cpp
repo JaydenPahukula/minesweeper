@@ -7,6 +7,7 @@
 #include "Timer.h"
 
 #include APPSPRITESHEETPATH
+#include FONTPATH
 #include ICONPATH
 
 #include <SFML/Graphics.hpp>
@@ -72,6 +73,8 @@ App::App(){
     _menu->addIntItem(&_nextNumBombs, "Number of bombs");
     _autoOpeningEnabled = DEFAULTAUTOOPENING;
     _menu->addBoolItem(&_autoOpeningEnabled, "Automatic opening");
+    _showStats = DEFAULTSHOWSTATS;
+    _menu->addBoolItem(&_showStats, "Show game stats");
 
     _menu->updateAssets(TILESIZE, _window.getSize().y);
 
@@ -108,6 +111,11 @@ void App::update(){
         } else if(event.type == Event::Closed){                 // window closed
             _window.close();
         }
+    }
+
+    // update stats
+    if (_showStats){
+        _statsText.setString(_getStatsString());
     }
 
     return;
@@ -158,6 +166,11 @@ void App::draw(){
             _confettiLaunched = true;
         }
         _confetti.draw(_window);
+    }
+
+    // stats
+    if (_showStats){
+        _window.draw(_statsText);
     }
 
     if (_menuOpen){
@@ -316,28 +329,38 @@ void App::_boundWindowSize(){
 }
 
 
+string App::_getStatsString(){
+    string tps = to_string(_game->tilesPerSecond());
+    return "3BV: " + to_string(_game->get3BV()) + "  TpS: " + tps.substr(0, tps.find('.')+3);
+}
+
 
 void App::_updateDynamicAssets(){
+    Vector2u windowSize = _window.getSize();
 
     // update background
-    _background.setSize(Vector2f(_window.getSize().x, _window.getSize().y));
+    _background.setSize(Vector2f(windowSize.x, windowSize.y));
     // update background dim
-    _backgroundDim.setSize(Vector2f(_window.getSize().x, _window.getSize().y));
+    _backgroundDim.setSize(Vector2f(windowSize.x, windowSize.y));
 
     // update faces
-    _happyFaceSprite.setPosition(_window.getSize().x/2.-TILESIZE, TILESIZE/2.);
-    _coolFaceSprite.setPosition(_window.getSize().x/2.-TILESIZE, TILESIZE/2.);
-    _sadFaceSprite.setPosition(_window.getSize().x/2.-TILESIZE, TILESIZE/2.);
+    _happyFaceSprite.setPosition(windowSize.x/2.-TILESIZE, TILESIZE/2.);
+    _coolFaceSprite.setPosition(windowSize.x/2.-TILESIZE, TILESIZE/2.);
+    _sadFaceSprite.setPosition(windowSize.x/2.-TILESIZE, TILESIZE/2.);
     
     // update digits
     for (int digit = 0; digit < 10; digit++){
         _digitSprites[0][digit].setPosition(TILESIZE*(3./4), TILESIZE*(3./4));
         _digitSprites[1][digit].setPosition(TILESIZE*(7./4), TILESIZE*(3./4));
         _digitSprites[2][digit].setPosition(TILESIZE*(11./4), TILESIZE*(3./4));
-        _digitSprites[3][digit].setPosition(_window.getSize().x-TILESIZE*(15./4), TILESIZE*(3./4));
-        _digitSprites[4][digit].setPosition(_window.getSize().x-TILESIZE*(11./4), TILESIZE*(3./4));
-        _digitSprites[5][digit].setPosition(_window.getSize().x-TILESIZE*(7./4), TILESIZE*(3./4));
+        _digitSprites[3][digit].setPosition(windowSize.x-TILESIZE*(15./4), TILESIZE*(3./4));
+        _digitSprites[4][digit].setPosition(windowSize.x-TILESIZE*(11./4), TILESIZE*(3./4));
+        _digitSprites[5][digit].setPosition(windowSize.x-TILESIZE*(7./4), TILESIZE*(3./4));
     }
+
+    // update stats text
+    _statsText.setPosition(TILESIZE/3., windowSize.y-(TILESIZE*0.75));
+
     // update menu
     _menu->updateAssets(TILESIZE, _window.getSize().x);
     return;
@@ -589,6 +612,15 @@ void App::_loadAssets(){
         digitSprite.setTextureRect(spriteLocations[digit]);
         _digitSprites[5][digit] = digitSprite;
     }
+
+    // load font
+    _font.loadFromMemory(FONTFILE, sizeof(FONTFILE));
+
+    // load stats text
+    _statsText.setFont(_font);
+    _statsText.setFillColor(Color::Black);
+    _statsText.setCharacterSize(TILESIZE/2.5);
+    _statsText.setString("test");
 
     return;
 }
