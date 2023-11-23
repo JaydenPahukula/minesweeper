@@ -50,6 +50,7 @@ class Game {
         sf::Texture _tilespritesheet;
 
         // game functions
+        std::vector<sf::Vector2u> _getAdjacentCoords(const sf::Vector2u a);
         void _playerWins();
         void _playerLoses();
         void _update();

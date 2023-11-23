@@ -154,6 +154,20 @@ float Game::tilesPerSecond() const { return (_timer.seconds() == 0) ? 0. : (floa
 
 
 
+vector<Vector2u> Game::_getAdjacentCoords(const Vector2u a){
+    vector<Vector2u> neighbors;
+    if (a.y > 0 && a.x > 0)                 neighbors.push_back(Vector2u(a.x-1, a.y-1));
+    if (a.y > 0)                            neighbors.push_back(Vector2u(a.x, a.y-1));
+    if (a.y > 0 && a.x < _width-1)          neighbors.push_back(Vector2u(a.x+1, a.y-1));
+    if (a.x > 0)                            neighbors.push_back(Vector2u(a.x-1, a.y));
+    if (a.x < _width-1)                     neighbors.push_back(Vector2u(a.x+1, a.y));
+    if (a.y < _height-1 && a.x > 0)         neighbors.push_back(Vector2u(a.x-1, a.y+1));
+    if (a.y < _height-1)                    neighbors.push_back(Vector2u(a.x, a.y+1));
+    if (a.y < _height-1 && a.x < _width-1)  neighbors.push_back(Vector2u(a.x+1, a.y+1));
+    return neighbors;
+}
+
+
 void Game::_playerWins(){
     _gameOver = 2;
     _timer.stop();
@@ -222,14 +236,9 @@ void Game::_checkZeroTile(unsigned int x, unsigned int y, bool first){
 
     // if tile is zero, recurse on adjacent tiles
     if (_grid[y][x]->getIdentity() == 0){
-        if (y > 0 && x > 0)                 _checkZeroTile(x-1, y-1, false);
-        if (y > 0)                          _checkZeroTile(x, y-1, false);
-        if (y > 0 && x < _width-1)          _checkZeroTile(x+1, y-1, false);
-        if (x > 0)                          _checkZeroTile(x-1, y, false);
-        if (x < _width-1)                   _checkZeroTile(x+1, y, false);
-        if (y < _height-1 && x > 0)         _checkZeroTile(x-1, y+1, false);
-        if (y < _height-1)                  _checkZeroTile(x, y+1, false);
-        if (y < _height-1 && x < _width-1)  _checkZeroTile(x+1, y+1, false);
+        for (Vector2u coords : this->_getAdjacentCoords(Vector2u(x,y))){
+            _checkZeroTile(coords.x, coords.y, false);
+        }
     }
     return;
 }
@@ -243,20 +252,13 @@ void Game::_chord(unsigned int x, unsigned int y){
     // return if not revealed or zero
     if (!_grid[y][x]->isRevealed() || _grid[y][x]->getIdentity() == 0) return;
 
+    // get adjacent tiles
+    vector<Vector2u> adjacentTiles = this->_getAdjacentCoords(Vector2u(x,y));
+
     // count number of adjacent flags
     int adjacentFlagCount = 0;
-    vector<unsigned int> nearbyTilesX;
-    vector<unsigned int> nearbyTilesY;
-    if (y > 0 && x > 0)                { nearbyTilesX.push_back(x-1); nearbyTilesY.push_back(y-1); }
-    if (y > 0)                         { nearbyTilesX.push_back(x);   nearbyTilesY.push_back(y-1); }
-    if (y > 0 && x < _width-1)         { nearbyTilesX.push_back(x+1); nearbyTilesY.push_back(y-1); }
-    if (x > 0)                         { nearbyTilesX.push_back(x-1); nearbyTilesY.push_back(y);   }
-    if (x < _width-1)                  { nearbyTilesX.push_back(x+1); nearbyTilesY.push_back(y);   }
-    if (y < _height-1 && x > 0)        { nearbyTilesX.push_back(x-1); nearbyTilesY.push_back(y+1); }
-    if (y < _height-1)                 { nearbyTilesX.push_back(x);   nearbyTilesY.push_back(y+1); }
-    if (y < _height-1 && x < _width-1) { nearbyTilesX.push_back(x+1); nearbyTilesY.push_back(y+1); }
-    for (unsigned int i = 0; i < nearbyTilesX.size(); i++){
-        if (_grid[nearbyTilesY[i]][nearbyTilesX[i]]->isFlagged()) adjacentFlagCount++;
+    for (Vector2u coords : adjacentTiles){
+        if (_grid[coords.y][coords.x]->isFlagged()) adjacentFlagCount++;
     }
 
     // if all adjacent bombs have been flagged
@@ -264,15 +266,15 @@ void Game::_chord(unsigned int x, unsigned int y){
 
         // reveal each non-flagged adjacent tile
         Tile* neighbor;
-        for (unsigned int i = 0; i < nearbyTilesX.size(); i++){
+        for (Vector2u coords : adjacentTiles){
 
-            neighbor = _grid[nearbyTilesY[i]][nearbyTilesX[i]];
+            neighbor = _grid[coords.y][coords.x];
             
             // skip flagged or revealed tiles
             if (neighbor->isFlagged() || neighbor->isRevealed()) continue;
 
             // reveal tile
-            _revealTile(nearbyTilesX[i], nearbyTilesY[i]);
+            _revealTile(coords.x, coords.y);
         }
     }
 
@@ -373,14 +375,9 @@ void Game::_loadTileSprites(){
             if (!_grid[y][x]->isBomb()){ // if not already a bomb
                 // count nearby bombs
                 adjacentBombCount = 0;
-                if (y > 0 && x > 0 && _grid[y-1][x-1]->isBomb())                adjacentBombCount++;
-                if (y > 0 && _grid[y-1][x]->isBomb())                           adjacentBombCount++;
-                if (y > 0 && x < _width-1 && _grid[y-1][x+1]->isBomb())         adjacentBombCount++;
-                if (x > 0 && _grid[y][x-1]->isBomb())                           adjacentBombCount++;
-                if (x < _width-1 && _grid[y][x+1]->isBomb())                    adjacentBombCount++;
-                if (y < _height-1 && x > 0 && _grid[y+1][x-1]->isBomb())        adjacentBombCount++;
-                if (y < _height-1 && _grid[y+1][x]->isBomb())                   adjacentBombCount++;
-                if (y < _height-1 && x < _width-1 && _grid[y+1][x+1]->isBomb()) adjacentBombCount++;
+                for (Vector2u coords : this->_getAdjacentCoords(Vector2u(x,y))){
+                    if (_grid[coords.y][coords.x]->isBomb()) adjacentBombCount++;
+                }
                 // initialize tile
                 _grid[y][x]->init(adjacentBombCount);
                 // set sprites
