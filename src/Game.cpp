@@ -15,7 +15,7 @@ using namespace std;
 
 
 
-Game::Game(const unsigned int width, const unsigned int height, const unsigned int numBombs, const bool autoOpen, const int seed){
+Game::Game(const unsigned int width, const unsigned int height, const unsigned int numBombs, const bool autoOpen){
 
     // initialize tile grid
     _gameOver = 0;
@@ -29,11 +29,7 @@ Game::Game(const unsigned int width, const unsigned int height, const unsigned i
     }
 
     // seed random
-    if (seed == 0){
-        srand(time(0));
-    } else {
-        srand(seed);
-    }
+    srand(time(0));
 
     // make bombs
     _numBombs = numBombs;
