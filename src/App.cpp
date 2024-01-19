@@ -75,6 +75,8 @@ App::App(){
     _menu->addBoolItem(&_autoOpeningEnabled, "Automatic opening");
     _showStats = DEFAULTSHOWSTATS;
     _menu->addBoolItem(&_showStats, "Show game stats");
+    _showProbabilities = DEFAULTSHOWPROB;
+    _menu->addBoolItem(&_showProbabilities, "Show probabilities");
 
     _menu->updateAssets(TILESIZE, _window.getSize().y);
 
@@ -135,6 +137,9 @@ void App::draw(){
     RenderStates boardState;
     boardState.transform = Transform().translate(_boardx, _boardy).scale(_boardTileSize/SPRITETILESIZE, _boardTileSize/SPRITETILESIZE);
     _game->draw(_window, boardState);
+    if (_showProbabilities){
+        _game->drawProbabilities(_window, boardState);
+    }
     
     // draw background border
     _drawBorder();

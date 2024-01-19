@@ -4,6 +4,9 @@
 #include <SFML/Graphics.hpp>
 using namespace sf;
 
+#include <string>
+using namespace std;
+
 
 Tile::Tile(){
     _identity = -1;
@@ -23,12 +26,13 @@ bool Tile::init(const int value){
 }
 
 
-void Tile::setSprites(Sprite unopened, Sprite flagged, Sprite opened, Sprite revealbomb, Sprite xbomb){
+void Tile::setSprites(Sprite unopened, Sprite flagged, Sprite opened, Sprite revealbomb, Sprite xbomb, Text text){
     _spriteUnopened = unopened;
     _spriteFlagged = flagged;
     _spriteOpened = opened;
     _spriteRevealBomb = revealbomb;
     _spriteXBomb = xbomb;
+    _text = text;
 }
 
 
@@ -74,6 +78,11 @@ void Tile::drawWin(RenderWindow &window, const sf::RenderStates &states) const {
     } else {
         window.draw(_spriteOpened, states);
     }
+}
+
+void Tile::drawText(RenderWindow &window, const sf::RenderStates &states, const string str){
+    _text.setString(str);
+    window.draw(_text, states);
 }
 
 void Tile::reveal(){

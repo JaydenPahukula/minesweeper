@@ -3,6 +3,8 @@
 
 #include <SFML/Graphics.hpp>
 
+#include <string>
+
 
 class Tile {
     public:
@@ -12,12 +14,13 @@ class Tile {
         // initialize the tile
         bool init(const int value);
         // initialze the tile's sprites
-        void setSprites(sf::Sprite unopened, sf::Sprite flag, sf::Sprite opened, sf::Sprite revealbomb, sf::Sprite xbomb);
+        void setSprites(sf::Sprite unopened, sf::Sprite flag, sf::Sprite opened, sf::Sprite revealbomb, sf::Sprite xbomb, sf::Text text);
 
         // draw the tile
         void draw(sf::RenderWindow &window, const sf::RenderStates &states) const;
         void drawLose(sf::RenderWindow &window, const sf::RenderStates &states) const;
         void drawWin(sf::RenderWindow &window, const sf::RenderStates &states) const;
+        void drawText(sf::RenderWindow &window, const sf::RenderStates &states, std::string str);
 
         // actions
         void reveal();
@@ -48,6 +51,7 @@ class Tile {
                    _spriteOpened,
                    _spriteRevealBomb,
                    _spriteXBomb;
+        sf::Text _text;
 
 };
 

@@ -23,6 +23,7 @@
 #define DEFAULTNUMBOMBS         8
 #define DEFAULTAUTOOPENING      false
 #define DEFAULTSHOWSTATS        false
+#define DEFAULTSHOWPROB         true
 
 // settings bounds
 #define MAXGAMEWIDTH            64

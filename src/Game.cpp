@@ -2,6 +2,7 @@
 #include "Game.h"
 
 #include GAMESPRITESHEETPATH
+#include FONTPATH
 
 #include <SFML/Graphics.hpp>
 using namespace sf;
@@ -38,10 +39,10 @@ Game::Game(const unsigned int width, const unsigned int height, const unsigned i
             i--;
         }
     }
-
+    
     // init tiles
     _loadTileSprites();
-
+    
     // create timer
     _timer = Timer();
 
@@ -50,24 +51,40 @@ Game::Game(const unsigned int width, const unsigned int height, const unsigned i
     _numRevealed = 0;
     _update3BV();
     _numClicks = 0;
-
+    
     if (autoOpen){
-        // find zero tile
-        unsigned int x, y;
-        do {
-            x = rand()%_width;
-            y = rand()%_height;
-        } while (_grid[y][x]->getIdentity() != 0);
-        // open
-        _revealTile(x, y);
-        // update game
-        _update();
+        // count tiles
+        Tile* tile;
+        vector<Vector2i> zeroTiles, numberTiles;
+        for (unsigned int y = 0; y < _height; y++){
+            for (unsigned int x = 0; x < _width; x++){
+                tile = _grid[y][x];
+                if (tile->getIdentity() == 0){
+                    zeroTiles.push_back(Vector2i(x, y));
+                } else if (!tile->isBomb()){
+                    numberTiles.push_back(Vector2i(x, y));
+                }
+            }
+        }
+        
+        // reveal random zero tile, else random number tile
+        Vector2i coords;
+        if (zeroTiles.size() > 0){
+            coords = zeroTiles[rand() % zeroTiles.size()];
+        } else {
+            coords = numberTiles[rand() % numberTiles.size()];
+        }
+        // open tile
+        _revealTile(coords.x, coords.y);
         // start timer
         _timer.start();
         // auto open counts as a click
         _numClicks++;
+
     }
     
+    // update game
+    _update();
 }
 
 
@@ -85,19 +102,37 @@ Game::~Game(){
 
 
 void Game::draw(RenderWindow& window, const sf::RenderStates &states){
-    
     // draw each tile
+    Tile* tile;
     for (unsigned int y = 0; y < _height; y++){
         for (unsigned int x = 0; x < _width; x++){
+            tile = _grid[y][x];
             switch (_gameOver){
                 case 0:
-                    _grid[y][x]->draw(window, states); break;
+                    tile->draw(window, states); break;
                 case 1:
-                    _grid[y][x]->drawLose(window, states); break;
+                    tile->drawLose(window, states); break;
                 case 2:
-                    _grid[y][x]->drawWin(window, states); break;
+                    tile->drawWin(window, states); break;
                 default:
                     break;
+            }
+        }
+    }
+    return;
+}
+
+
+
+void Game::drawProbabilities(RenderWindow& window, const sf::RenderStates &states){
+    // draw each tile probability
+    Tile* tile;
+    for (unsigned int y = 0; y < _height; y++){
+        for (unsigned int x = 0; x < _width; x++){
+            tile = _grid[y][x];
+            // if not revealed, draw probability
+            if (!tile->isRevealed() && !tile->isFlagged() && (!_gameOver || !tile->isBomb())){
+                tile->drawText(window, states, to_string(_probabilities[y][x]));
             }
         }
     }
@@ -192,15 +227,18 @@ void Game::_update(){
         }
     }
     if (numFlagged > _numBombs) numFlagged = _numBombs;
-
+    
     // update _numBombsRemaining
     _numBombsRemaining = _numBombs - numFlagged;
 
+    // update probabilities
+    _updateProbabilities();
+    
     // check if game is done
     if (!_gameOver && (_width * _height) - _numRevealed == _numBombs){
         _playerWins();
     }
-
+    
 }
 
 
@@ -291,8 +329,8 @@ void Game::_update3BV(){
     // search all zero tiles
     for (unsigned int y1 = 0; y1 < _height; y1++){
         for (unsigned int x1 = 0; x1 < _width; x1++){
-
-            if (!seen[x1][y1] && _grid[y1][x1]->getIdentity() == 0){
+            if (!seen[y1][x1] && _grid[y1][x1]->getIdentity() == 0){
+                
                 queue<Vector2i> q;
                 q.push(Vector2i(x1,y1));
                 // bfs
@@ -306,8 +344,8 @@ void Game::_update3BV(){
                             for (int dx = -1; dx <= 1; dx++){
                                 // if in bounds and not seen, add to queue
                                 Vector2i neighbor(curr.x+dx, curr.y+dy);
-                                if (boundaries.contains(neighbor) && !seen[neighbor.x][neighbor.y]){
-                                    seen[neighbor.x][neighbor.y] = true;
+                                if (boundaries.contains(neighbor) && !seen[neighbor.y][neighbor.x]){
+                                    seen[neighbor.y][neighbor.x] = true;
                                     q.push(neighbor);
                                 }
                             }
@@ -318,21 +356,65 @@ void Game::_update3BV(){
             }
         }
     }
-
+    
     // count all remaining non-bomb tiles
     for (unsigned int y1 = 0; y1 < _height; y1++){
         for (unsigned int x1 = 0; x1 < _width; x1++){
-            if (!seen[x1][y1] && !_grid[y1][x1]->isBomb()){
+            if (!seen[y1][x1] && !_grid[y1][x1]->isBomb()){
                 count++;
             }
         }
     }
-
+    
     // set 3BV
     _3BV = count;
     return;
 }
 
+
+
+void Game::_updateProbabilities(){
+    _probabilities = vector<vector<int>>(_height, vector<int>(_width, -1));
+
+    // first check all basic logic
+    bool done = false;
+    while (!done){
+        done = true;
+        for (unsigned int y = 0; y < _height; y++){
+            for (unsigned int x = 0; x < _width; x++){
+                if (!_grid[y][x]->isRevealed() || _grid[y][x]->getIdentity() == 0) continue;
+                // look at each neighbor
+                vector<Vector2u> mines, notMines, unknown;
+                for (Vector2u coords : _getAdjacentCoords(Vector2u(x,y))){
+                    Tile* neighbor = _grid[coords.y][coords.x];
+                    if (!neighbor->isRevealed()){
+                        if (_probabilities[coords.y][coords.x] == 100) mines.push_back(coords);
+                        else if (_probabilities[coords.y][coords.x] == 0) notMines.push_back(coords);
+                        else unknown.push_back(coords);
+                    }
+                }
+                unsigned int identity = _grid[y][x]->getIdentity();
+                // if identity = # of non-flag tiles, all non-flag tiles are mines
+                if (identity == mines.size() + unknown.size()){
+                    for (Vector2u& coords : unknown){
+                        _probabilities[coords.y][coords.x] = 100;
+                        done = false;
+                    }
+                }
+                // if identity = # of mine tiles, all other tiles are safe
+                if (identity == mines.size()){
+                    for (Vector2u& coords : unknown){
+                        _probabilities[coords.y][coords.x] = 0;
+                        done = false;
+                    }
+                }
+            }
+        }
+    }
+
+    
+    return;
+}
 
 
 
@@ -357,6 +439,12 @@ void Game::_loadTileSprites(){
                               Sprite(_tilespritesheet, IntRect(16, 48, 16, 16)),
                               Sprite(_tilespritesheet, IntRect(32, 48, 16, 16)),
                               Sprite(_tilespritesheet, IntRect(0, 16, 16, 16))};
+    
+    // load text
+    _font.loadFromMemory(FONTFILE, sizeof(FONTFILE));
+    Text text("0", _font, SPRITETILESIZE*12);
+    text.setFillColor(Color::Black);
+    text.setScale(Vector2f(1/32., 1/32.));
 
     // initialize tiles
     int adjacentBombCount;
@@ -371,6 +459,7 @@ void Game::_loadTileSprites(){
             flaggedSprite.setPosition(tilex, tiley);
             revealbombSprite.setPosition(tilex, tiley);
             xbombSprite.setPosition(tilex, tiley);
+            text.setPosition(tilex, tiley);
 
             if (!_grid[y][x]->isBomb()){ // if not already a bomb
                 // count nearby bombs
@@ -382,13 +471,13 @@ void Game::_loadTileSprites(){
                 _grid[y][x]->init(adjacentBombCount);
                 // set sprites
                 openedSprite[adjacentBombCount].setPosition(tilex, tiley);
-                _grid[y][x]->setSprites(unopenedSprite, flaggedSprite, openedSprite[adjacentBombCount], revealbombSprite, xbombSprite);
+                _grid[y][x]->setSprites(unopenedSprite, flaggedSprite, openedSprite[adjacentBombCount], revealbombSprite, xbombSprite, text);
             
             } else { // already a bomb
                 // set sprites
                 openedSprite[9].setTextureRect(IntRect(0, 16, 16, 16));
                 openedSprite[9].setPosition(tilex, tiley);
-                _grid[y][x]->setSprites(unopenedSprite, flaggedSprite, openedSprite[9], revealbombSprite, xbombSprite);
+                _grid[y][x]->setSprites(unopenedSprite, flaggedSprite, openedSprite[9], revealbombSprite, xbombSprite, text);
             }
         }
     }

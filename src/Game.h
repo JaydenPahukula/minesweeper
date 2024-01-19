@@ -20,6 +20,7 @@ class Game {
 
         // draw the game
         void draw(sf::RenderWindow &window, const sf::RenderStates &states);
+        void drawProbabilities(sf::RenderWindow &window, const sf::RenderStates &states);
 
         // click event
         void click(const sf::Event::MouseButtonEvent mouse, unsigned int x, unsigned int y, bool chordingEnabled);
@@ -41,6 +42,7 @@ class Game {
 
         // game state
         std::vector<std::vector<Tile*>> _grid;
+        std::vector<std::vector<int>> _probabilities;
         unsigned int _gameOver;
         unsigned int _numBombsRemaining;
         unsigned int _numRevealed;
@@ -48,6 +50,7 @@ class Game {
         // textures and sprites
         void _loadTileSprites();
         sf::Texture _tilespritesheet;
+        sf::Font _font;
 
         // game functions
         std::vector<sf::Vector2u> _getAdjacentCoords(const sf::Vector2u a);
@@ -65,6 +68,7 @@ class Game {
         unsigned int _3BV;
         void _update3BV();
         unsigned int _numClicks;
+        void _updateProbabilities();
 };
 
 

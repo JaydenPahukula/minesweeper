@@ -78,6 +78,7 @@ class App {
         unsigned int _nextNumBombs;
         bool _autoOpeningEnabled;
         bool _showStats;
+        bool _showProbabilities;
 
         // mouse/panning
         bool _mouseHolding, _mousePanning;
