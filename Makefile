@@ -1,4 +1,4 @@
-TARGET = minesweeper
+TARGET = minesweeper.exe
 SRC_FILES = src/App.cpp src/main.cpp src/Game.cpp src/Tile.cpp src/Menu.cpp src/Timer.cpp src/Confetti.cpp
 
 OBJECTS = $(SRC_FILES:.cpp=.o)
@@ -9,16 +9,6 @@ INC_PATH = ./lib/SFML/include
 LIB_PATH = ./lib/SFML/lib
 
 LIBS = sfml-graphics-s sfml-window-s sfml-system-s opengl32 freetype winmm gdi32
-
-ifeq ($(shell echo "Windows"), "Windows")
-    TARGET := $(TARGET).exe
-    SRC_FILES := $(subst /,\,$(SRC_FILES)) # replace slashes with backslashes
-	DEL = del
-	FLAGS += 
-	LIBS += 
-else
-	DEL = rm -f
-endif
 
 all: $(TARGET)
 
